@@ -212,10 +212,12 @@
   </div>
 
   <script>
-    // ─── Scroll-driven video (raw, instant seek) ───
+    // ─── Scroll-driven video (mobile-friendly) ───
     (function() {
       const video = document.getElementById('bg-video');
       if (!video) return;
+      
+      let ready = false;
       
       video.addEventListener('loadedmetadata', () => {
         function getDocHeight() {
@@ -226,11 +228,32 @@
           );
         }
         
+        // On first user interaction, play 1 frame so iOS allows seeking
+        function initVideo() {
+          if (ready) return;
+          ready = true;
+          video.play().then(() => {
+            video.pause();
+          }).catch(() => {});
+          // Set initial position
+          const maxScroll = getDocHeight() - window.innerHeight;
+          try { video.currentTime = (window.scrollY / maxScroll) * video.duration; } catch(e) {}
+        }
+        
+        window.addEventListener('touchstart', initVideo, { once: true });
+        window.addEventListener('scroll', initVideo, { once: true, passive: true });
+        
+        // On desktop, try immediately
+        if (!/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+          initVideo();
+        }
+        
         let ticking = false;
         
         function onScroll() {
-          if (!ticking) {
+          if (!ready || !ticking) {
             window.requestAnimationFrame(() => {
+              if (!ready) { ticking = false; return; }
               const maxScroll = getDocHeight() - window.innerHeight;
               const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
               try { video.currentTime = progress * video.duration; } catch(e) {}
@@ -241,11 +264,15 @@
         }
         
         window.addEventListener('scroll', onScroll, { passive: true });
-        
-        // Initial position
-        const maxScroll = getDocHeight() - window.innerHeight;
-        try { video.currentTime = (window.scrollY / maxScroll) * video.duration; } catch(e) {}
       });
+      
+      // Fallback: if video never initialized, try on any interaction
+      document.addEventListener('click', () => {
+        if (!ready) {
+          ready = true;
+          video.play().then(() => video.pause()).catch(() => {});
+        }
+      }, { once: true });
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
