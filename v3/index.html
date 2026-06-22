@@ -78,7 +78,7 @@
     .artist-card .overlay {
       position: absolute; bottom: 0; left: 0; right: 0;
       padding: 3rem 1.5rem 1.5rem;
-      background: linear-gradient(transparent, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.95) 80%);
+      background: linear-gradient(transparent, rgba(15,20,40,0.6) 40%, rgba(10,14,26,0.92) 80%);
     }
     .artist-card .overlay h3 {
       font-family: 'Sora', sans-serif;
@@ -108,6 +108,12 @@
       overflow: hidden;
       background: rgba(15,20,40,0.4);
       box-shadow: 0 8px 32px rgba(224,228,240,0.06);
+      position: relative;
+    }
+    .artist-profile .portrait::after {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(0deg, rgba(10,14,26,0.7) 0%, rgba(15,20,40,0.2) 40%, transparent 70%);
+      pointer-events: none;
     }
     .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .artist-profile .info { }
