@@ -10,4 +10,136 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Space Grotesk', sans-serif; background: #0d0d0d; color: #f0ede8; }
 
-    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; top: -10%; left: -10%; z-index: 0; background: url('bg.jpg') repeat; background-size: 600px; filter: brightness(0.5) contrast(1.0); will-change: background-position; filter: brightness(0.7) contrast(1.0); }
+    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: url('bg.jpg') repeat; background-size: 600px; filter: brightness(0.5) contrast(1.0); will-change: background-position; }
+    
+    .content { position: relative; z-index: 2; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1rem 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(30px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    nav .logo-img { height: 32px; width: auto; filter: brightness(1.2); }
+    nav a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: #fff; }
+
+    section { padding: 6rem 2rem 4rem; position: relative; }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .profile-glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+      border-radius: 24px;
+      padding: 2.5rem;
+    }
+    .profile { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    @media (max-width: 768px) { .profile { grid-template-columns: 1fr; } }
+    .profile .portrait { aspect-ratio: 9/16; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
+    .profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .profile .info h1 { font-family: 'Sora', sans-serif; font-size: 2.5rem; font-weight: 800; color: #f0ede8; margin-bottom: 0.3rem; }
+    .profile .info .role { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); margin-bottom: 1.2rem; }
+    .profile .info p { font-size: 0.85rem; color: rgba(255,255,255,0.5); line-height: 1.9; font-weight: 300; margin-bottom: 0.8rem; }
+    .profile .info .social a { display: inline-block; margin-right: 0.8rem; margin-top: 0.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.3s; }
+    .profile .info .social a:hover { color: #fff; }
+
+    .gallery-title { font-family: 'Sora', sans-serif; font-size: 1.8rem; font-weight: 700; color: #f0ede8; margin-bottom: 0.5rem; text-align: center; }
+    .gallery-sub { color: rgba(255,255,255,0.35); text-align: center; font-size: 0.85rem; margin-bottom: 2rem; font-weight: 300; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem; }
+    .gallery-item {
+      aspect-ratio: 4/5;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+    .gallery-item:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gallery-glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+      border-radius: 24px;
+      padding: 2.5rem;
+    }
+
+    footer { text-align: center; padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.03); font-size: 0.7rem; color: rgba(255,255,255,0.12); font-weight: 300; }
+  </style>
+</head>
+<body>
+  <div id="bg-image"></div>
+  <div id="bg-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;background:rgba(0,0,0,0.3);"></div>
+  
+
+  <nav>
+    <img src="jimmac_tattoo_transparent.png" alt="JimmaC" class="logo-img" />
+    <a href="v1/index.html" style="margin-left:auto;">← Back</a>
+  </nav>
+
+  <div class="content">
+    <section class="container">
+      <div class="profile-glass">
+        <div class="profile">
+          <div class="portrait"><img src="jimmac.jpg" alt="Jimmac" /></div>
+          <div class="info">
+            <h1>Jimmac</h1>
+            <div class="role">Owner & Tattoo Artist</div>
+            <p>Με πάνω από 10 χρόνια εμπειρίας, ο Jimmac έχει δημιουργήσει χιλιάδες tattoo — από μικρά minimal σχέδια μέχρι full sleeves και ρεαλιστικά πορτρέτα. Ιδρυτής του JimmaC Tattoo Studio, με πάθος για την τέχνη και τη λεπτομέρεια.</p>
+            <p>Ειδικεύεται σε blackwork, ρεαλισμό, geometric και custom σχέδια.</p>
+            <div class="social">
+              <a href="https://www.instagram.com/jimmactattoo/" target="_blank">📷 Instagram</a>
+              <a href="index.html#contact">📞 Κλείσε Ραντεβού</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" style="padding-top:1rem;">
+      <h2 class="gallery-title">Portfolio</h2>
+      <p class="gallery-sub">Μια ματιά στη δουλειά του Jimmac</p>
+      <div class="gallery-glass">
+        <div class="gallery">
+          <div class="gallery-item" style="background: rgba(255,255,255,0.04);"></div>
+          <div class="gallery-item" style="background: rgba(255,255,255,0.06);"></div>
+          <div class="gallery-item" style="background: rgba(255,255,255,0.04);"></div>
+          <div class="gallery-item" style="background: rgba(255,255,255,0.06);"></div>
+          <div class="gallery-item" style="background: rgba(255,255,255,0.04);"></div>
+          <div class="gallery-item" style="background: rgba(255,255,255,0.06);"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer><p>© 2026 JimmaC Tattoo Studio · Λάρισα</p></footer>
+
+  
+<script>
+(function() {
+  const bg = document.getElementById('bg-image');
+  if (!bg) return;
+  let pos = 0, lastScroll = window.scrollY, scrollDelta = 0;
+  window.addEventListener('scroll', () => {
+    const cur = window.scrollY;
+    scrollDelta = cur - lastScroll;
+    lastScroll = cur;
+  }, {passive: true});
+  function anim() {
+    pos += 0.3;
+    pos += scrollDelta * 0.15;
+    scrollDelta *= 0.85;
+    bg.style.backgroundPosition = '0 ' + pos + 'px';
+    requestAnimationFrame(anim);
+  }
+  anim();
+})();
+</body>
+</html>
