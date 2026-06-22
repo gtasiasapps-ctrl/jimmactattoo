@@ -212,19 +212,12 @@
   </div>
 
   <script>
-    // ─── Smooth scroll-driven video ───
+    // ─── Scroll-driven video (raw, instant seek) ───
     (function() {
       const video = document.getElementById('bg-video');
       if (!video) return;
       
       video.addEventListener('loadedmetadata', () => {
-        // Increase the video's frame rate responsiveness
-        video.preload = 'auto';
-        
-        let targetTime = 0;
-        let currentTime = 0;
-        let animating = false;
-        
         function getDocHeight() {
           return Math.max(
             document.body.scrollHeight, document.documentElement.scrollHeight,
@@ -233,34 +226,17 @@
           );
         }
         
-        function onScroll() {
-          const maxScroll = getDocHeight() - window.innerHeight;
-          const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-          targetTime = progress * video.duration;
-          
-          if (!animating) {
-            animating = true;
-            smoothSeek();
-          }
-        }
+        let ticking = false;
         
-        function smoothSeek() {
-          // Smooth interpolation
-          currentTime += (targetTime - currentTime) * 0.1;
-          
-          // Snap if very close
-          if (Math.abs(targetTime - currentTime) < 0.02) {
-            currentTime = targetTime;
-          }
-          
-          try {
-            video.currentTime = currentTime;
-          } catch(e) {}
-          
-          if (Math.abs(targetTime - currentTime) > 0.01) {
-            requestAnimationFrame(smoothSeek);
-          } else {
-            animating = false;
+        function onScroll() {
+          if (!ticking) {
+            window.requestAnimationFrame(() => {
+              const maxScroll = getDocHeight() - window.innerHeight;
+              const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+              try { video.currentTime = progress * video.duration; } catch(e) {}
+              ticking = false;
+            });
+            ticking = true;
           }
         }
         
@@ -268,15 +244,7 @@
         
         // Initial position
         const maxScroll = getDocHeight() - window.innerHeight;
-        targetTime = currentTime = (window.scrollY / maxScroll) * video.duration;
-        try { video.currentTime = currentTime; } catch(e) {}
-        
-        // Recalculate on resize
-        window.addEventListener('resize', () => {
-          const maxScroll = getDocHeight() - window.innerHeight;
-          const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-          targetTime = currentTime = progress * video.duration;
-        });
+        try { video.currentTime = (window.scrollY / maxScroll) * video.duration; } catch(e) {}
       });
     })();
 
