@@ -11,9 +11,14 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: #fff; color: #0d0d0d; overflow-x: hidden; }
 
-    #ink-canvas {
+    #bg-canvas {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       z-index: 0; pointer-events: none;
+    }
+    #ink-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 30%, transparent 30%, rgba(255,255,255,0.5) 100%);
     }
 
     .content { position: relative; z-index: 2; }
@@ -22,7 +27,7 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.92);
       backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(0,0,0,0.04);
     }
@@ -181,7 +186,8 @@
 </head>
 <body>
 
-  <canvas id="ink-canvas"></canvas>
+  <div id="bg-canvas"></div>
+  <div id="ink-overlay"></div>
 
   <nav>
     <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo" class="logo-img" />
@@ -291,281 +297,186 @@
     <footer><p>© 2026 JimmaC Tattoo Studio · Λάρισα</p></footer>
   </div>
 
-  <script>
-    // ─── Bottle Pour — Realistic Ink Flow ───
-    const canvas = document.getElementById('ink-canvas');
-    const ctx = canvas.getContext('2d');
-    let W, H;
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
+  <!-- ─── Three.js — Ink Bloom in Water ─── -->
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    const canvas = document.getElementById('bg-canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    canvas.appendChild(renderer.domElement);
+
+    // ─── Ink particle texture (soft, organic) ───
+    const inkTex = (() => {
+      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32,32,0,32,32,32);
+      g.addColorStop(0,'rgba(0,0,0,1)');
+      g.addColorStop(0.1,'rgba(0,0,0,0.9)');
+      g.addColorStop(0.3,'rgba(0,0,0,0.5)');
+      g.addColorStop(0.6,'rgba(0,0,0,0.1)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(32,32,32,0,Math.PI*2);
+      ctx.fill();
+      return new THREE.CanvasTexture(c);
+    })();
+
+    // ─── Particles ───
+    const COUNT = 8000;
+    const pos = new Float32Array(COUNT * 3);
+    const basePos = new Float32Array(COUNT * 3);  // initial spawn position
+    const phase = new Float32Array(COUNT);
+    const speed = new Float32Array(COUNT);
+    const life = new Float32Array(COUNT); // 0-1 life cycle
+    const sizes = new Float32Array(COUNT);
+    const angles = new Float32Array(COUNT);
+
+    // Spawn center - slightly above center
+    const spawnX = 0;
+    const spawnY = 0.5;
+    const spawnZ = 0;
+
+    function resetParticle(i) {
+      // Random direction in 3D
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 0.1; // start very close to center
+      basePos[i*3] = spawnX + Math.sin(phi) * Math.cos(theta) * r;
+      basePos[i*3+1] = spawnY + Math.sin(phi) * Math.sin(theta) * r;
+      basePos[i*3+2] = spawnZ + Math.cos(phi) * r * 0.3;
+      pos[i*3] = basePos[i*3];
+      pos[i*3+1] = basePos[i*3+1];
+      pos[i*3+2] = basePos[i*3+2];
+      phase[i] = Math.random() * Math.PI * 2;
+      speed[i] = 0.2 + Math.random() * 0.8;
+      life[i] = 0;
+      angles[i] = Math.random() * Math.PI * 2;
+      sizes[i] = 0.04 + Math.random() * 0.12;
     }
-    resize();
-    window.addEventListener('resize', resize);
 
-    // ─── Bottle position (where ink pours from) ───
-    const bottle = {
-      x: 0, y: -10,
-      tilt: 0,
-      // The stream follows a curve from the bottle mouth
-    };
+    for (let i = 0; i < COUNT; i++) {
+      resetParticle(i);
+    }
 
-    // ─── The main ink pour trail ───
-    // We compute the stream as a bezier curve and draw it
-    const trail = [];
-    const MAX_TRAIL = 300;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-    // ─── Droplets ───
-    const droplets = [];
+    const mat = new THREE.PointsMaterial({
+      map: inkTex,
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.9,
+      size: 0.3,
+      blending: THREE.NormalBlending,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
 
-    // ─── Small splashes around ───
-    const splashes = [];
+    camera.position.set(0, 0, 6);
 
-    let mouseX = W/2, mouseY = H/2;
-    document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+    // ─── Mouse ───
+    let mx = 0, my = 0;
+    document.addEventListener('mousemove', e => {
+      mx = (e.clientX / window.innerWidth) * 2 - 1;
+      my = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+
     let scrollY = 0;
     window.addEventListener('scroll', () => { scrollY = window.scrollY; });
-    let frame = 0;
-    let streamProgress = 0; // 0 to 1, how far down the stream has traveled
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-    function drawInk() {
-      frame++;
-      ctx.clearRect(0, 0, W, H);
-      const progress = Math.min(1, scrollY / 3500);
-
-      // ─── Bottle mouth position ───
-      // The bottle is on the left side, tilted right
-      const t = Date.now() * 0.0004;
-      bottle.x = W * 0.25 + Math.sin(t) * 40;
-      bottle.y = -5 + Math.sin(t * 0.7) * 3;
-      bottle.tilt = 0.4 + Math.sin(t * 0.5) * 0.15; // how tilted the bottle is
-
-      // ─── Compute stream curve ───
-      // Start at bottle mouth, curve downward like pouring from a tilted bottle
-      // Control points create a beautiful arc
-      const startX = bottle.x;
-      const startY = bottle.y;
-      const endY = H + 100;
-
-      // The curve: starts going slightly right (from the tilt), then gravity pulls it down
-      // We use a cubic bezier-like path through computed points
-      const cp1x = startX + 80 + bottle.tilt * 200;
-      const cp1y = startY + H * 0.15;
-      const cp2x = startX + 40 + bottle.tilt * 100;
-      const cp2y = startY + H * 0.6;
-      const endX = startX - 30 + Math.sin(t * 0.3) * 20;
-
-      // Thickness of the stream (very thick!)
-      const baseThick = 22 + Math.sin(t * 0.6) * 4 + progress * 5;
-
-      // ─── Advance the stream head ───
-      streamProgress += 0.003 + progress * 0.002;
-      if (streamProgress > 1) {
-        // Stream reached bottom, reset for endless loop
-        streamProgress = 0;
-        // Keep the trail but it fades fast
-        trail.length = 0;
-      }
-
-      // ─── Build trail from curve points ───
-      // Sample points along the bezier curve
-      const sampleCount = Math.floor(streamProgress * MAX_TRAIL);
-      trail.length = 0;
-
-      for (let i = 0; i < sampleCount; i++) {
-        const u = i / MAX_TRAIL;
-        if (u > streamProgress) break;
-
-        // Cubic bezier interpolation
-        const uu = u * u;
-        const uuu = uu * u;
-        const mu = 1 - u;
-        const muu = mu * mu;
-        const muu2 = 2 * mu * u;
-        const uu3 = uu * u;
-
-        // Simplified bezier: start → cp1 (arc right) → cp2 (arc down) → end
-        const px = muu*mu*startX + 3*muu*u*cp1x + 3*mu*uu*cp2x + uuu*endX;
-        const py = muu*mu*startY + 3*muu*u*cp1y + 3*mu*uu*cp2y + uuu*endY;
-
-        // Thickness varies along the stream (thicker as it drops)
-        const thick = baseThick * (0.4 + u * 0.6) + Math.sin(u * 10 + t) * 2;
-        // Add some wobble
-        const wobble = Math.sin(u * 12 + t * 0.8) * 1.5;
-
-        trail.push({
-          x: px + wobble,
-          y: py,
-          thick: thick,
-          u: u,
-        });
-      }
-
-      // ─── Draw the main stream ───
-      if (trail.length > 2) {
-        // Draw outer shadow/bloom first
-        ctx.beginPath();
-        ctx.moveTo(trail[0].x, trail[0].y);
-        for (let i = 1; i < trail.length; i++) {
-          ctx.lineTo(trail[i].x, trail[i].y);
-        }
-        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-        ctx.lineWidth = baseThick * 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-
-        // Draw the main thick stream
-        for (let i = 1; i < trail.length; i++) {
-          const t0 = trail[i-1];
-          const t1 = trail[i];
-          const alpha = 0.85 * (0.3 + t1.u * 0.7);
-
-          ctx.beginPath();
-          ctx.moveTo(t0.x, t0.y);
-          ctx.lineTo(t1.x, t1.y);
-          ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
-          ctx.lineWidth = t1.thick;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          ctx.stroke();
-        }
-
-        // Draw highlight (inner lighter core) for liquid depth
-        for (let i = 3; i < trail.length; i++) {
-          const t0 = trail[i-1];
-          const t1 = trail[i];
-          ctx.beginPath();
-          ctx.moveTo(t0.x, t0.y);
-          ctx.lineTo(t1.x, t1.y);
-          ctx.strokeStyle = `rgba(0,0,0,${0.4 * (0.2 + t1.u * 0.8)})`;
-          ctx.lineWidth = t1.thick * 0.5;
-          ctx.stroke();
-        }
-
-        // Splatter at stream head
-        if (trail.length > 10) {
-          const head = trail[trail.length - 1];
-          const head2 = trail[trail.length - 3] || head;
-
-          // Major splashes
-          if (frame % 3 === 0) {
-            for (let s = 0; s < 4; s++) {
-              const sx = head.x + (Math.random() - 0.5) * baseThick * 2;
-              const sy = head.y + Math.random() * 15;
-              const sr = 1 + Math.random() * 5;
-              ctx.beginPath();
-              ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(0,0,0,${0.05 + Math.random() * 0.15})`;
-              ctx.fill();
-            }
-          }
-
-          // Drop spawn from head
-          if (frame % 2 === 0 && Math.random() < 0.3) {
-            droplets.push({
-              x: head.x + (Math.random() - 0.5) * baseThick,
-              y: head.y + Math.random() * 5,
-              vx: (Math.random() - 0.5) * 0.6 + (head.x - head2.x) * 3,
-              vy: 3 + Math.random() * 4,
-              radius: 1.5 + Math.random() * 3.5,
-              opacity: 0.7 + Math.random() * 0.3,
-              life: 0,
-            });
-          }
-
-          // Occasional big droplet falls off the stream
-          if (frame % 8 === 0 && trail.length > 20) {
-            const idx = 10 + Math.floor(Math.random() * (trail.length - 15));
-            const pt = trail[idx];
-            splashes.push({
-              x: pt.x + (Math.random() - 0.5) * pt.thick,
-              y: pt.y + (Math.random() - 0.5) * 3,
-              vx: (Math.random() - 0.5) * 0.8,
-              vy: 1 + Math.random() * 2,
-              radius: pt.thick * (0.1 + Math.random() * 0.2),
-              opacity: 0.2 + Math.random() * 0.3,
-              life: 0,
-            });
-          }
-        }
-      }
-
-      // ─── Draw & update droplets ───
-      for (let i = droplets.length - 1; i >= 0; i--) {
-        const d = droplets[i];
-        d.life++;
-        d.vy += 0.04;
-        d.y += d.vy;
-        d.x += d.vx + Math.sin(d.life * 0.05 + d.x * 0.01) * 0.05;
-        const fade = Math.max(0, 1 - d.life / 100);
-
-        const stretch = 1 + d.vy * 0.2;
-        ctx.beginPath();
-        ctx.ellipse(d.x, d.y, d.radius, d.radius * stretch, d.vy * 0.1, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,0,0,${d.opacity * fade})`;
-        ctx.fill();
-
-        if (d.life > 100 || d.y > H + 20) {
-          // Small splatter on death
-          if (d.life > 80) {
-            for (let s = 0; s < 5; s++) {
-              ctx.beginPath();
-              ctx.arc(
-                d.x + (Math.random() - 0.5) * 10,
-                d.y + (Math.random() - 0.5) * 5,
-                d.radius * (0.1 + Math.random() * 0.2),
-                0, Math.PI * 2
-              );
-              ctx.fillStyle = `rgba(0,0,0,${fade * 0.4})`;
-              ctx.fill();
-            }
-          }
-          droplets.splice(i, 1);
-        }
-      }
-
-      // ─── Draw & update splashes (small ink drops flying off) ───
-      for (let i = splashes.length - 1; i >= 0; i--) {
-        const s = splashes[i];
-        s.life++;
-        s.vy += 0.03;
-        s.y += s.vy;
-        s.x += s.vx;
-        const fade = Math.max(0, 1 - s.life / 60);
-
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.radius * fade, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,0,0,${s.opacity * fade})`;
-        ctx.fill();
-
-        if (s.life > 60 || s.y > H + 10) {
-          splashes.splice(i, 1);
-        }
-      }
-
-      // ─── Ambient ink dust (subtle) ───
-      if (frame % 20 === 0 && trail.length > 10) {
-        for (let d = 0; d < 2; d++) {
-          const pt = trail[Math.floor(Math.random() * trail.length)];
-          ctx.beginPath();
-          ctx.arc(
-            pt.x + (Math.random() - 0.5) * baseThick * 3,
-            pt.y + (Math.random() - 0.5) * 20,
-            1 + Math.random() * 4,
-            0, Math.PI * 2
-          );
-          ctx.fillStyle = `rgba(0,0,0,${0.01 + Math.random() * 0.02})`;
-          ctx.fill();
-        }
-      }
-
-      requestAnimationFrame(drawInk);
+    const clock = new THREE.Clock();
+    // ─── Simple noise-like function ───
+    function noise(x, y, z) {
+      return Math.sin(x * 1.7 + y * 3.2 + z * 0.5) * Math.cos(y * 2.1 - x * 0.8 + z * 1.3) * Math.sin(z * 2.5 + x * 0.4 - y * 0.6);
     }
 
-    drawInk();
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      const scrollProg = Math.min(1, scrollY / 3500);
 
-    // ─── Counter + Reveal ───
+      const p = points.geometry.attributes.position.array;
+
+      for (let i = 0; i < COUNT; i++) {
+        const idx = i * 3;
+        life[i] += 0.001 + speed[i] * 0.003;
+
+        if (life[i] > 1) {
+          resetParticle(i);
+          continue;
+        }
+
+        const l = life[i];
+        // Ease-out curve: fast at start, slow at end (like ink diffusing)
+        const easeL = 1 - Math.pow(1 - l, 1.5);
+        // Maximum spread
+        const maxSpread = 4 + scrollProg * 1.5;
+        const spread = maxSpread * easeL;
+
+        // Direction: each particle has a unique angle, plus swirling
+        const angle = angles[i] + t * 0.03 * speed[i];
+        const a = angle + noise(i * 0.01, l, t * 0.02) * 2;
+
+        // Organic diffusion: not just expanding sphere, but wispy tendrils
+        const radius3D = spread * (0.3 + 0.7 * Math.abs(noise(i * 0.02, l * 0.5, t * 0.01)));
+
+        // Particle swirls and curls as it moves
+        const curlX = Math.sin(l * 8 + phase[i] + t * 0.3 * speed[i]) * 0.3 * spread * 0.2;
+        const curlY = Math.cos(l * 6 + phase[i] * 1.2 + t * 0.2 * speed[i]) * 0.3 * spread * 0.15;
+        const curlZ = Math.sin(l * 5 + phase[i] * 0.7 + t * 0.15 * speed[i]) * 0.3 * spread * 0.1;
+
+        // Gravity / downward drift
+        const gravity = l * 0.8;
+
+        p[idx] = spawnX + Math.cos(a) * radius3D + curlX + mx * 0.3 * l;
+        p[idx+1] = spawnY + Math.sin(a * 0.6) * radius3D * 0.7 - gravity + curlY + my * 0.2 * l;
+        p[idx+2] = spawnZ + Math.sin(a) * radius3D * 0.3 + curlZ;
+
+        // Add some wisps — tendrils that shoot out in specific directions
+        const wispPhase = Math.floor(i / 100) * 100;
+        const wispAngle = angles[i] + t * 0.02;
+        const wispStrength = Math.max(0, Math.sin(l * 3 + i * 0.005) * 0.5);
+        p[idx] += Math.cos(wispAngle + wispPhase) * wispStrength * spread * 0.2;
+        p[idx+1] += Math.sin(wispAngle * 0.5 + wispPhase) * wispStrength * spread * 0.1;
+      }
+
+      points.geometry.attributes.position.needsUpdate = true;
+
+      // Particle opacity based on scroll
+      points.material.opacity = 0.9 - scrollProg * 0.3;
+      // Size also varies
+      points.material.size = 0.3 + scrollProg * 0.05;
+
+      // Camera
+      camera.position.x += (mx * 2 - camera.position.x) * 0.03;
+      camera.position.y += (my * 1 + 0.5 - camera.position.y) * 0.03;
+      camera.lookAt(0, 0.3, 0);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.stat-num[data-count]');
       const counterObs = new IntersectionObserver(entries => {
