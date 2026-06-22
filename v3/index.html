@@ -70,10 +70,19 @@
       display: block;
     }
     .artist-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(224,228,240,0.12); }
+    .artist-card::after {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(20,30,80,0.25);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .artist-card:hover::after { opacity: 0.7; }
     .artist-card img {
       width: 100%; height: 100%;
       object-fit: cover;
       display: block;
+      
     }
     .artist-card .overlay {
       position: absolute; bottom: 0; left: 0; right: 0;
@@ -112,10 +121,16 @@
     }
     .artist-profile .portrait::after {
       content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(20,30,80,0.3) 0%, rgba(10,14,26,0.5) 100%);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+    .artist-profile .portrait::after {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(0deg, rgba(10,14,26,0.7) 0%, rgba(15,20,40,0.2) 40%, transparent 70%);
       pointer-events: none;
     }
-    .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block;  }
     .artist-profile .info { }
     .artist-profile .info h2 {
       font-family: 'Sora', sans-serif;
