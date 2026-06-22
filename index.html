@@ -292,7 +292,7 @@
   </div>
 
   <script>
-    // ─── Realistic Ink Pour — Bottle effect ───
+    // ─── Bottle Pour — Realistic Ink Flow ───
     const canvas = document.getElementById('ink-canvas');
     const ctx = canvas.getContext('2d');
     let W, H;
@@ -303,258 +303,261 @@
     resize();
     window.addEventListener('resize', resize);
 
-    // ─── Main Ink Pour ───
-    // A massive stream of ink pouring down the center of the screen
-
-    const main = {
-      x: 0,     // set to center
-      y: -30,
-      speed: 3.5 + Math.random() * 1.5,
-      thickness: 12 + Math.random() * 8,
-      // Trail history
-      trail: [],
-      maxTrail: 200,
-      phase: Math.random() * Math.PI * 2,
-      // Wiggle
-      wiggleX: 0,
-      wiggleSpeed: 0.3 + Math.random() * 0.5,
-      // Thickness variation
-      thickPhase: 0,
-      // Splash timers
-      splashTimer: 0,
-      dropTimer: 0,
+    // ─── Bottle position (where ink pours from) ───
+    const bottle = {
+      x: 0, y: -10,
+      tilt: 0,
+      // The stream follows a curve from the bottle mouth
     };
 
-    // Secondary smaller streams
-    const secondaries = [];
+    // ─── The main ink pour trail ───
+    // We compute the stream as a bezier curve and draw it
+    const trail = [];
+    const MAX_TRAIL = 300;
 
-    function addSecondary(x, y, thickness, speed, opacity) {
-      secondaries.push({
-        x, y,
-        speed: speed || (1 + Math.random() * 2),
-        thickness: thickness || (2 + Math.random() * 4),
-        opacity: opacity || (0.2 + Math.random() * 0.3),
-        trail: [],
-        maxTrail: 50 + Math.floor(Math.random() * 80),
-        phase: Math.random() * Math.PI * 2,
-        life: 0,
-        maxLife: 200 + Math.random() * 200,
-      });
-    }
-
-    // Independent droplets
+    // ─── Droplets ───
     const droplets = [];
+
+    // ─── Small splashes around ───
+    const splashes = [];
 
     let mouseX = W/2, mouseY = H/2;
     document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-
     let scrollY = 0;
     window.addEventListener('scroll', () => { scrollY = window.scrollY; });
-
     let frame = 0;
+    let streamProgress = 0; // 0 to 1, how far down the stream has traveled
 
     function drawInk() {
       frame++;
       ctx.clearRect(0, 0, W, H);
-
       const progress = Math.min(1, scrollY / 3500);
 
-      // ─── Set main stream position ───
-      main.x = W * (0.3 + 0.4 * (progress > 0 ? 0.5 + Math.sin(Date.now()*0.0002)*0.15 : 0.5));
-      // Slowly drift
-      main.wiggleX = Math.sin(Date.now() * 0.0003 * main.wiggleSpeed + main.phase) * 20;
-      const mainX = main.x + main.wiggleX;
+      // ─── Bottle mouth position ───
+      // The bottle is on the left side, tilted right
+      const t = Date.now() * 0.0004;
+      bottle.x = W * 0.25 + Math.sin(t) * 40;
+      bottle.y = -5 + Math.sin(t * 0.7) * 3;
+      bottle.tilt = 0.4 + Math.sin(t * 0.5) * 0.15; // how tilted the bottle is
 
-      // ─── Gravity ───
-      main.speed += 0.01;
-      if (main.speed > 6) main.speed = 6;
+      // ─── Compute stream curve ───
+      // Start at bottle mouth, curve downward like pouring from a tilted bottle
+      // Control points create a beautiful arc
+      const startX = bottle.x;
+      const startY = bottle.y;
+      const endY = H + 100;
 
-      // Move main stream head
-      main.y += main.speed * (1 + progress * 0.3);
+      // The curve: starts going slightly right (from the tilt), then gravity pulls it down
+      // We use a cubic bezier-like path through computed points
+      const cp1x = startX + 80 + bottle.tilt * 200;
+      const cp1y = startY + H * 0.15;
+      const cp2x = startX + 40 + bottle.tilt * 100;
+      const cp2y = startY + H * 0.6;
+      const endX = startX - 30 + Math.sin(t * 0.3) * 20;
 
-      // ─── Thickness variation (liquid wobble) ───
-      main.thickPhase += 0.02;
-      const thickVar = Math.sin(main.thickPhase) * 2;
-      const currentThick = main.thickness + thickVar;
+      // Thickness of the stream (very thick!)
+      const baseThick = 22 + Math.sin(t * 0.6) * 4 + progress * 5;
 
-      // ─── Add to trail ───
-      main.trail.push({
-        x: mainX + Math.sin(Date.now() * 0.001 + frame * 0.05) * 1.5,
-        y: main.y,
-        thick: currentThick,
-        age: 0,
-      });
-      if (main.trail.length > main.maxTrail) main.trail.shift();
-      for (const t of main.trail) t.age++;
-
-      // ─── Spawn secondary streams from main stream ───
-      main.splashTimer++;
-      if (main.splashTimer > 20 + Math.random() * 40 && main.trail.length > 10) {
-        main.splashTimer = 0;
-        // Pick a point along the trail to branch
-        const idx = Math.floor(Math.random() * main.trail.length * 0.7);
-        if (idx < main.trail.length) {
-          const pt = main.trail[idx];
-          const branchX = pt.x + (Math.random() - 0.5) * currentThick * 2;
-          const branchY = pt.y + (Math.random() - 0.5) * 5;
-          const speed = 1 + Math.random() * 2.5;
-          const thick = 1 + Math.random() * 4;
-          if (secondaries.length < 30) {
-            addSecondary(branchX, branchY, thick, speed, 0.1 + Math.random() * 0.2);
-          }
-        }
+      // ─── Advance the stream head ───
+      streamProgress += 0.003 + progress * 0.002;
+      if (streamProgress > 1) {
+        // Stream reached bottom, reset for endless loop
+        streamProgress = 0;
+        // Keep the trail but it fades fast
+        trail.length = 0;
       }
 
-      // ─── Spawn droplets from stream tip ───
-      main.dropTimer++;
-      if (main.dropTimer > 3) {
-        main.dropTimer = 0;
-        for (let d = 0; d < 2; d++) {
-          droplets.push({
-            x: mainX + (Math.random() - 0.5) * currentThick,
-            y: main.y + Math.random() * 10,
-            vx: (Math.random() - 0.5) * 0.8,
-            vy: 2 + Math.random() * 3,
-            radius: 1 + Math.random() * 3,
-            opacity: 0.6 + Math.random() * 0.4,
-            life: 0,
-          });
-        }
+      // ─── Build trail from curve points ───
+      // Sample points along the bezier curve
+      const sampleCount = Math.floor(streamProgress * MAX_TRAIL);
+      trail.length = 0;
+
+      for (let i = 0; i < sampleCount; i++) {
+        const u = i / MAX_TRAIL;
+        if (u > streamProgress) break;
+
+        // Cubic bezier interpolation
+        const uu = u * u;
+        const uuu = uu * u;
+        const mu = 1 - u;
+        const muu = mu * mu;
+        const muu2 = 2 * mu * u;
+        const uu3 = uu * u;
+
+        // Simplified bezier: start → cp1 (arc right) → cp2 (arc down) → end
+        const px = muu*mu*startX + 3*muu*u*cp1x + 3*mu*uu*cp2x + uuu*endX;
+        const py = muu*mu*startY + 3*muu*u*cp1y + 3*mu*uu*cp2y + uuu*endY;
+
+        // Thickness varies along the stream (thicker as it drops)
+        const thick = baseThick * (0.4 + u * 0.6) + Math.sin(u * 10 + t) * 2;
+        // Add some wobble
+        const wobble = Math.sin(u * 12 + t * 0.8) * 1.5;
+
+        trail.push({
+          x: px + wobble,
+          y: py,
+          thick: thick,
+          u: u,
+        });
       }
 
-      // ─── Draw main stream ───
-      if (main.trail.length > 2) {
-        // Draw the main stream as a thick flowing ribbon
-        for (let j = 1; j < main.trail.length; j++) {
-          const t0 = main.trail[j-1];
-          const t1 = main.trail[j];
-          const ageRatio = j / main.trail.length;
-          const thickness = t1.thick * (0.1 + ageRatio * 0.9);
-          const alpha = 0.7 * (0.1 + ageRatio * 0.9) * (1 - progress * 0.2);
+      // ─── Draw the main stream ───
+      if (trail.length > 2) {
+        // Draw outer shadow/bloom first
+        ctx.beginPath();
+        ctx.moveTo(trail[0].x, trail[0].y);
+        for (let i = 1; i < trail.length; i++) {
+          ctx.lineTo(trail[i].x, trail[i].y);
+        }
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.lineWidth = baseThick * 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // Draw the main thick stream
+        for (let i = 1; i < trail.length; i++) {
+          const t0 = trail[i-1];
+          const t1 = trail[i];
+          const alpha = 0.85 * (0.3 + t1.u * 0.7);
 
           ctx.beginPath();
           ctx.moveTo(t0.x, t0.y);
           ctx.lineTo(t1.x, t1.y);
           ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
-          ctx.lineWidth = thickness;
+          ctx.lineWidth = t1.thick;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
           ctx.stroke();
-
-          // Draw a subtle inner highlight for liquid depth
-          if (thickness > 3 && j > 5) {
-            ctx.beginPath();
-            ctx.moveTo(t0.x, t0.y);
-            ctx.lineTo(t1.x, t1.y);
-            ctx.strokeStyle = `rgba(0,0,0,${alpha * 0.4})`;
-            ctx.lineWidth = thickness * 0.6;
-            ctx.stroke();
-          }
         }
 
-        // Splatter at stream tip
-        if (frame % 4 === 0) {
-          const tip = main.trail[main.trail.length - 1];
-          for (let s = 0; s < 3; s++) {
-            ctx.beginPath();
-            ctx.arc(
-              tip.x + (Math.random() - 0.5) * currentThick * 2,
-              tip.y + Math.random() * 8,
-              Math.random() * 3 + 0.5,
-              0, Math.PI * 2
-            );
-            ctx.fillStyle = `rgba(0,0,0,${0.1 + Math.random() * 0.2})`;
-            ctx.fill();
+        // Draw highlight (inner lighter core) for liquid depth
+        for (let i = 3; i < trail.length; i++) {
+          const t0 = trail[i-1];
+          const t1 = trail[i];
+          ctx.beginPath();
+          ctx.moveTo(t0.x, t0.y);
+          ctx.lineTo(t1.x, t1.y);
+          ctx.strokeStyle = `rgba(0,0,0,${0.4 * (0.2 + t1.u * 0.8)})`;
+          ctx.lineWidth = t1.thick * 0.5;
+          ctx.stroke();
+        }
+
+        // Splatter at stream head
+        if (trail.length > 10) {
+          const head = trail[trail.length - 1];
+          const head2 = trail[trail.length - 3] || head;
+
+          // Major splashes
+          if (frame % 3 === 0) {
+            for (let s = 0; s < 4; s++) {
+              const sx = head.x + (Math.random() - 0.5) * baseThick * 2;
+              const sy = head.y + Math.random() * 15;
+              const sr = 1 + Math.random() * 5;
+              ctx.beginPath();
+              ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(0,0,0,${0.05 + Math.random() * 0.15})`;
+              ctx.fill();
+            }
+          }
+
+          // Drop spawn from head
+          if (frame % 2 === 0 && Math.random() < 0.3) {
+            droplets.push({
+              x: head.x + (Math.random() - 0.5) * baseThick,
+              y: head.y + Math.random() * 5,
+              vx: (Math.random() - 0.5) * 0.6 + (head.x - head2.x) * 3,
+              vy: 3 + Math.random() * 4,
+              radius: 1.5 + Math.random() * 3.5,
+              opacity: 0.7 + Math.random() * 0.3,
+              life: 0,
+            });
+          }
+
+          // Occasional big droplet falls off the stream
+          if (frame % 8 === 0 && trail.length > 20) {
+            const idx = 10 + Math.floor(Math.random() * (trail.length - 15));
+            const pt = trail[idx];
+            splashes.push({
+              x: pt.x + (Math.random() - 0.5) * pt.thick,
+              y: pt.y + (Math.random() - 0.5) * 3,
+              vx: (Math.random() - 0.5) * 0.8,
+              vy: 1 + Math.random() * 2,
+              radius: pt.thick * (0.1 + Math.random() * 0.2),
+              opacity: 0.2 + Math.random() * 0.3,
+              life: 0,
+            });
           }
         }
       }
 
-      // ─── Update secondaries ───
-      for (let i = secondaries.length - 1; i >= 0; i--) {
-        const s = secondaries[i];
-        s.life++;
-        s.y += s.speed * (1 + progress * 0.2);
-        s.x += Math.sin(Date.now() * 0.002 + s.phase + s.life * 0.01) * 0.2 * s.speed;
-        s.trail.push({ x: s.x, y: s.y, age: 0 });
-        if (s.trail.length > s.maxTrail) s.trail.shift();
-        for (const t of s.trail) t.age++;
-
-        // Draw secondary
-        if (s.trail.length > 1) {
-          for (let j = 1; j < s.trail.length; j++) {
-            const t0 = s.trail[j-1], t1 = s.trail[j];
-            const ar = j / s.trail.length;
-            ctx.beginPath();
-            ctx.moveTo(t0.x, t0.y);
-            ctx.lineTo(t1.x, t1.y);
-            ctx.strokeStyle = `rgba(0,0,0,${s.opacity * (0.2 + ar * 0.8) * (1 - s.life/s.maxLife)})`;
-            ctx.lineWidth = s.thickness * (0.15 + ar * 0.85) * (1 - s.life/s.maxLife);
-            ctx.lineCap = 'round';
-            ctx.stroke();
-          }
-        }
-
-        if (s.life > s.maxLife || s.y > H + 50) {
-          secondaries.splice(i, 1);
-        }
-      }
-
-      // ─── Update droplets ───
+      // ─── Draw & update droplets ───
       for (let i = droplets.length - 1; i >= 0; i--) {
         const d = droplets[i];
         d.life++;
-        d.vy += 0.05;
+        d.vy += 0.04;
         d.y += d.vy;
-        d.x += d.vx + Math.sin(d.life * 0.03) * 0.05;
-        const fade = Math.max(0, 1 - d.life / 80);
+        d.x += d.vx + Math.sin(d.life * 0.05 + d.x * 0.01) * 0.05;
+        const fade = Math.max(0, 1 - d.life / 100);
 
-        // Draw stretched droplet
-        const stretch = 1 + d.vy * 0.3;
+        const stretch = 1 + d.vy * 0.2;
         ctx.beginPath();
-        ctx.ellipse(d.x, d.y, d.radius * (1 + d.vy * 0.05), d.radius * stretch, 0, 0, Math.PI * 2);
+        ctx.ellipse(d.x, d.y, d.radius, d.radius * stretch, d.vy * 0.1, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(0,0,0,${d.opacity * fade})`;
         ctx.fill();
 
-        // Tiny splash on death
-        if (d.life > 75 && Math.random() < 0.05) {
-          for (let s = 0; s < 3; s++) {
-            ctx.beginPath();
-            ctx.arc(
-              d.x + (Math.random()-0.5)*8,
-              d.y + (Math.random()-0.5)*4,
-              d.radius * 0.2,
-              0, Math.PI * 2
-            );
-            ctx.fillStyle = `rgba(0,0,0,${fade * 0.3})`;
-            ctx.fill();
+        if (d.life > 100 || d.y > H + 20) {
+          // Small splatter on death
+          if (d.life > 80) {
+            for (let s = 0; s < 5; s++) {
+              ctx.beginPath();
+              ctx.arc(
+                d.x + (Math.random() - 0.5) * 10,
+                d.y + (Math.random() - 0.5) * 5,
+                d.radius * (0.1 + Math.random() * 0.2),
+                0, Math.PI * 2
+              );
+              ctx.fillStyle = `rgba(0,0,0,${fade * 0.4})`;
+              ctx.fill();
+            }
           }
-        }
-
-        if (d.life > 80 || d.y > H + 10) {
           droplets.splice(i, 1);
         }
       }
 
-      // ─── Reset main stream when it goes off screen ───
-      if (main.y > H + 200) {
-        main.y = -20;
-        main.x = W * (0.3 + Math.random() * 0.4);
-        main.speed = 3 + Math.random() * 2;
-        main.thickness = 10 + Math.random() * 10;
-        main.trail = [];
-        // Drop all secondaries
-        secondaries.length = 0;
+      // ─── Draw & update splashes (small ink drops flying off) ───
+      for (let i = splashes.length - 1; i >= 0; i--) {
+        const s = splashes[i];
+        s.life++;
+        s.vy += 0.03;
+        s.y += s.vy;
+        s.x += s.vx;
+        const fade = Math.max(0, 1 - s.life / 60);
+
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius * fade, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${s.opacity * fade})`;
+        ctx.fill();
+
+        if (s.life > 60 || s.y > H + 10) {
+          splashes.splice(i, 1);
+        }
       }
 
-      // ─── Ambient ink smudges ───
-      if (frame % 30 === 0 && Math.random() < 0.3) {
-        const sx = Math.random() * W;
-        const sy = Math.random() * H;
-        const sr = 5 + Math.random() * 20;
-        ctx.beginPath();
-        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,0,0,${0.005 + Math.random() * 0.01})`;
-        ctx.fill();
+      // ─── Ambient ink dust (subtle) ───
+      if (frame % 20 === 0 && trail.length > 10) {
+        for (let d = 0; d < 2; d++) {
+          const pt = trail[Math.floor(Math.random() * trail.length)];
+          ctx.beginPath();
+          ctx.arc(
+            pt.x + (Math.random() - 0.5) * baseThick * 3,
+            pt.y + (Math.random() - 0.5) * 20,
+            1 + Math.random() * 4,
+            0, Math.PI * 2
+          );
+          ctx.fillStyle = `rgba(0,0,0,${0.01 + Math.random() * 0.02})`;
+          ctx.fill();
+        }
       }
 
       requestAnimationFrame(drawInk);
