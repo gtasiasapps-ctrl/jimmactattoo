@@ -11,7 +11,8 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Space Grotesk', sans-serif; background: #0d0d0d; color: #f0ede8; overflow-x: hidden; }
 
-    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: url('bg.jpg') center/cover fixed; filter: brightness(0.7) contrast(1.0); }
+    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: url('bg.jpg') repeat; background-size: 300px; filter: brightness(0.5) contrast(1.0); will-change: background-position; }
+    #bg-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; background: rgba(0,0,0,0.3); }
     .content { position: relative; z-index: 2; }
 
     nav {
@@ -226,6 +227,7 @@
 </head>
 <body>
   <div id="bg-image"></div>
+  <div id="bg-overlay"></div>
 
   <nav>
     <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo" class="logo-img" />
@@ -329,6 +331,33 @@
   </div>
 
   <script>
+    // ─── Infinite scroll background ───
+    (function() {
+      const bg = document.getElementById('bg-image');
+      if (!bg) return;
+      let pos = 0;
+      let lastScroll = window.scrollY;
+      let scrollDelta = 0;
+      
+      window.addEventListener('scroll', () => {
+        const current = window.scrollY;
+        scrollDelta = current - lastScroll;
+        lastScroll = current;
+      }, { passive: true });
+      
+      function animate() {
+        // Continuous drift (always slowly moving)
+        pos += 0.3;
+        // Add scroll influence (scroll down = faster, scroll up = reverse)
+        pos += scrollDelta * 0.15;
+        // Decay scroll delta
+        scrollDelta *= 0.85;
+        bg.style.backgroundPosition = `0 ${pos}px`;
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.stat-num[data-count]');
       const counterObs = new IntersectionObserver(entries => {
