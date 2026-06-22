@@ -260,15 +260,15 @@
     <!-- ── Artists Selector ── -->
     <section id="artists" class="container" style="padding-top:2rem;padding-bottom:2rem;">
       <div class="artists-row">
-        <div class="artist-card reveal" onclick="openArtist('jimmac')">
+        <a href="jimmac.html" class="artist-card reveal" target="_blank">
           <img src="jimmac.png" alt="Jimmac" />
           <div class="overlay"><h3>Jimmac</h3><p>Owner & Tattoo Artist</p></div>
-        </div>
-        <div class="artist-card reveal" onclick="openArtist('silok')">
+        </a>
+        <a href="silok.html" class="artist-card reveal" target="_blank">
           <img src="silok.png" alt="Silok" />
           <div class="overlay"><h3>Silok</h3><p>Tattoo Artist</p></div>
-        </div>
-        <div class="artist-card reveal" onclick="openArtist('tako')">
+        </a>
+        <a href="tako.html" class="artist-card reveal" target="_blank">
           <img src="tako.png" alt="Playboi Tako" />
           <div class="overlay"><h3>Playboi Tako</h3><p>Tattoo Artist</p></div>
         </div>
@@ -276,14 +276,6 @@
     </section>
 
     <div class="divider"></div>
-
-    <!-- ── Artist Overlays ── -->
-    <div class="artist-overlay" id="artistOverlay">
-      <div class="container" id="artistOverlayContent">
-        <button class="close-btn" onclick="closeArtist()">✕</button>
-        <div id="artistOverlayInner"></div>
-      </div>
-    </div>
 
     <section id="about" class="container">
       <h2 class="section-title reveal-scale">Το Studio</h2>
@@ -400,76 +392,6 @@
         }
       }, { once: true });
     })();
-
-    // ─── Artist Overlay ───
-    const artistData = {
-      jimmac: {
-        name: 'Jimmac',
-        role: 'Owner & Tattoo Artist',
-        img: 'jimmac.png',
-        desc: ['Με πάνω από 10 χρόνια εμπειρίας, ο Jimmac έχει δημιουργήσει χιλιάδες tattoo — από μικρά minimal σχέδια μέχρι full sleeves και ρεαλιστικά πορτρέτα. Ιδρυτής του JimmaC Tattoo Studio, με πάθος για την τέχνη και τη λεπτομέρεια.', 'Ειδικεύεται σε blackwork, ρεαλισμό, geometric και custom σχέδια.'],
-        instagram: 'https://www.instagram.com/jimmactattoo/',
-      },
-      silok: {
-        name: 'Silok',
-        role: 'Tattoo Artist',
-        img: 'silok.png',
-        desc: ['Ο Silok είναι γνωστός για το μοναδικό του στυλ που συνδυάζει λεπτομερή γραμμικά σχέδια με σύγχρονες τεχνικές. Η δουλειά του χαρακτηρίζεται από καθαρές γραμμές, ισορροπημένες συνθέσεις και δημιουργική προσέγγιση.', 'Ειδικεύεται σε fine line, dotwork, micro realism και custom commissions.'],
-        instagram: '#',
-      },
-      tako: {
-        name: 'Playboi Tako',
-        role: 'Tattoo Artist',
-        img: 'tako.png',
-        desc: ['Ο Playboi Tako φέρνει μια φρέσκια, καλλιτεχνική ματιά στο studio. Με μοναδικό στυλ και δημιουργική προσέγγιση, κάθε του δημιουργία ξεχωρίζει.', 'Ειδικεύεται σε σύγχρονα στυλ, γεωμετρικά σχέδια και custom tattoo.'],
-        instagram: '#',
-      },
-    };
-
-    function openArtist(id) {
-      const a = artistData[id];
-      if (!a) return;
-      const inner = document.getElementById('artistOverlayInner');
-      inner.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;">
-          <div style="aspect-ratio:9/16;border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.06);">
-            <img src="${a.img}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;display:block;" />
-          </div>
-          <div>
-            <h2 style="font-family:'Sora',sans-serif;font-size:2.5rem;font-weight:800;color:#090909;margin-bottom:0.3rem;">${a.name}</h2>
-            <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:rgba(0,0,0,0.35);margin-bottom:1.2rem;">${a.role}</div>
-            ${a.desc.map(d => `<p style="font-size:0.85rem;color:rgba(0,0,0,0.5);line-height:1.9;font-weight:300;margin-bottom:0.8rem;">${d}</p>`).join('')}
-            <div style="margin-top:1rem;">
-              <a href="${a.instagram}" target="_blank" style="display:inline-block;margin-right:0.8rem;font-size:0.8rem;color:rgba(0,0,0,0.4);text-decoration:none;">📷 Instagram</a>
-              <a href="#contact" onclick="closeArtist()" style="display:inline-block;font-size:0.8rem;color:rgba(0,0,0,0.4);text-decoration:none;">📞 Κλείσε Ραντεβού</a>
-            </div>
-          </div>
-        </div>
-      `;
-      const overlay = document.getElementById('artistOverlay');
-      overlay.classList.add('show');
-      overlay.style.display = 'flex';
-      setTimeout(() => { overlay.style.opacity = '1'; }, 10);
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeArtist() {
-      const overlay = document.getElementById('artistOverlay');
-      overlay.style.opacity = '0';
-      setTimeout(() => {
-        overlay.classList.remove('show');
-        overlay.style.display = 'none';
-        document.body.style.overflow = '';
-      }, 300);
-    }
-
-    // Close on click outside
-    document.addEventListener('click', (e) => {
-      const overlay = document.getElementById('artistOverlay');
-      if (overlay.classList.contains('show') && e.target === overlay) {
-        closeArtist();
-      }
-    });
 
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.stat-num[data-count]');
