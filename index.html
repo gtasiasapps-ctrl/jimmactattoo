@@ -55,6 +55,92 @@
     .hero .btn-outline:hover { border-color: rgba(0,0,0,0.2); color: #000; }
 
     section { padding: 4rem 2rem; position: relative; }
+    .artists-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; max-width: 900px; margin: 2rem auto 0; }
+    @media (max-width: 600px) { .artists-row { grid-template-columns: 1fr; max-width: 350px; } }
+    .artist-card {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      border-radius: 24px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #eee;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+      text-decoration: none;
+      display: block;
+    }
+    .artist-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+    .artist-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .artist-card .overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 3rem 1.5rem 1.5rem;
+      background: linear-gradient(transparent, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.95) 80%);
+    }
+    .artist-card .overlay h3 {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #090909;
+      margin-bottom: 0.2rem;
+    }
+    .artist-card .overlay p {
+      font-size: 0.7rem;
+      color: rgba(0,0,0,0.45);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .artist-profile {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    @media (max-width: 768px) { .artist-profile { grid-template-columns: 1fr; } }
+    .artist-profile .portrait {
+      aspect-ratio: 9 / 16;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #eee;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .artist-profile .info { }
+    .artist-profile .info h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #090909;
+      margin-bottom: 0.3rem;
+    }
+    .artist-profile .info .role {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(0,0,0,0.35);
+      margin-bottom: 1.2rem;
+    }
+    .artist-profile .info p {
+      font-size: 0.85rem;
+      color: rgba(0,0,0,0.5);
+      line-height: 1.9;
+      font-weight: 300;
+    }
+    .artist-profile .info .social a {
+      display: inline-block;
+      margin-right: 0.8rem;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: rgba(0,0,0,0.4);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .artist-profile .info .social a:hover { color: #000; }
     .container { max-width: 1100px; margin: 0 auto; }
     .section-title { font-family: 'Sora', sans-serif; font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; margin-bottom: 0.6rem; text-align: center; letter-spacing: -0.02em; color: #090909; }
     .section-sub { text-align: center; color: rgba(0,0,0,0.35); max-width: 500px; margin: 0 auto 2.5rem; font-size: 0.85rem; line-height: 1.7; font-weight: 300; }
@@ -146,6 +232,7 @@
     <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo" class="logo-img" />
     <div class="links" id="navLinks">
       <a href="#about">Στούντιο</a>
+      <a href="#artists">Artists</a>
       <a href="#services">Υπηρεσίες</a>
       <a href="#reviews">Κριτικές</a>
       <a href="#location">Τοποθεσία</a>
@@ -169,6 +256,85 @@
       <div class="stat reveal"><div class="stat-num" data-count="5481">0</div><div class="stat-label">Followers</div></div>
       <div class="stat reveal"><div class="stat-num" data-count="247">0</div><div class="stat-label">Tattoos</div></div>
     </div></section>
+
+    <!-- ── Artists Selector ── -->
+    <section id="artists" class="container">
+      <h2 class="section-title reveal-scale">Meet the <span style="font-weight:800">Artists</span></h2>
+      <p class="section-sub reveal">Τρεις καλλιτέχνες, τρεις προσεγγίσεις, μια οικογένεια.</p>
+      <div class="artists-row">
+        <a href="#artist-jimmac" class="artist-card reveal">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#2a2a2a,#555)"></div>
+          <div class="overlay"><h3>Jimmac</h3><p>Owner & Tattoo Artist</p></div>
+        </a>
+        <a href="#artist-silok" class="artist-card reveal">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#3a3a3a,#666)"></div>
+          <div class="overlay"><h3>Silok</h3><p>Tattoo Artist</p></div>
+        </a>
+        <a href="#artist-3" class="artist-card reveal">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#444,#777)"></div>
+          <div class="overlay"><h3>Artemis</h3><p>Tattoo Artist</p></div>
+        </a>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── Artist Profiles ── -->
+    <section id="artist-jimmac" class="container">
+      <h2 class="section-title reveal-scale" style="font-size:1rem;font-weight:400;color:rgba(0,0,0,0.3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Tattoo Artist</h2>
+      <div class="artist-profile">
+        <div class="portrait reveal"><div style="width:100%;height:100%;background:linear-gradient(145deg,#2a2a2a,#555)"></div></div>
+        <div class="info reveal">
+          <h2>Jimmac</h2>
+          <div class="role">Owner & Tattoo Artist</div>
+          <p>Με πάνω από 10 χρόνια εμπειρίας, ο Jimmac έχει δημιουργήσει χιλιάδες tattoo — από μικρά minimal σχέδια μέχρι full sleeves και ρεαλιστικά πορτρέτα. Ιδρυτής του JimmaC Tattoo Studio, με πάθος για την τέχνη και τη λεπτομέρεια.</p>
+          <p>Ειδικεύεται σε blackwork, ρεαλισμό, geometric και custom σχέδια.</p>
+          <div class="social">
+            <a href="https://www.instagram.com/jimmactattoo/" target="_blank">📷 Instagram</a>
+            <a href="#contact">📞 Κλείσε Ραντεβού</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section id="artist-silok" class="container">
+      <h2 class="section-title reveal-scale" style="font-size:1rem;font-weight:400;color:rgba(0,0,0,0.3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Tattoo Artist</h2>
+      <div class="artist-profile">
+        <div class="portrait reveal"><div style="width:100%;height:100%;background:linear-gradient(145deg,#3a3a3a,#666)"></div></div>
+        <div class="info reveal">
+          <h2>Silok</h2>
+          <div class="role">Tattoo Artist</div>
+          <p>Ο Silok είναι γνωστός για το μοναδικό του στυλ που συνδυάζει λεπτομερή γραμμικά σχέδια με σύγχρονες τεχνικές. Η δουλειά του χαρακτηρίζεται από καθαρές γραμμές, ισορροπημένες συνθέσεις και δημιουργική προσέγγιση.</p>
+          <p>Ειδικεύεται σε fine line, dotwork, micro realism και custom commissions.</p>
+          <div class="social">
+            <a href="#" target="_blank">📷 Instagram</a>
+            <a href="#contact">📞 Κλείσε Ραντεβού</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section id="artist-3" class="container">
+      <h2 class="section-title reveal-scale" style="font-size:1rem;font-weight:400;color:rgba(0,0,0,0.3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:2rem;">Tattoo Artist</h2>
+      <div class="artist-profile">
+        <div class="portrait reveal"><div style="width:100%;height:100%;background:linear-gradient(145deg,#444,#777)"></div></div>
+        <div class="info reveal">
+          <h2>Artemis</h2>
+          <div class="role">Tattoo Artist</div>
+          <p>Η Artemis φέρνει μια φρέσκια, καλλιτεχνική ματιά στο studio. Με εμπειρία σε watercolor, botanical και neotraditional στυλ, δημιουργεί tattoo που μοιάζουν με πίνακες ζωγραφικής πάνω στο δέρμα.</p>
+          <p>Ειδικεύεται σε watercolor, botanical, neotraditional και color realism.</p>
+          <div class="social">
+            <a href="#" target="_blank">📷 Instagram</a>
+            <a href="#contact">📞 Κλείσε Ραντεβού</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="divider"></div>
     <section id="about" class="container">
       <h2 class="section-title reveal-scale">Το Studio</h2>
