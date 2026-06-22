@@ -70,10 +70,19 @@
       display: block;
     }
     .artist-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+    .artist-card {
+      isolation: isolate;
+    }
     .artist-card img {
       width: 100%; height: 100%;
       object-fit: cover;
       display: block;
+      mix-blend-mode: multiply;
+      filter: contrast(1.3) brightness(0.95);
+      transition: filter 0.4s;
+    }
+    .artist-card:hover img {
+      filter: contrast(1.5) brightness(0.9);
     }
     .artist-card .overlay {
       position: absolute; bottom: 0; left: 0; right: 0;
@@ -109,7 +118,8 @@
       background: #eee;
       box-shadow: 0 8px 32px rgba(0,0,0,0.06);
     }
-    .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; mix-blend-mode: multiply; filter: contrast(1.3) brightness(0.95); }
+    .artist-profile .portrait { isolation: isolate; }
     .artist-profile .info { }
     .artist-profile .info h2 {
       font-family: 'Sora', sans-serif;
