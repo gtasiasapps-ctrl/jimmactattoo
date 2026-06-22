@@ -11,7 +11,7 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Space Grotesk', sans-serif; background: #0d0d0d; color: #f0ede8; overflow-x: hidden; }
 
-    #bg-image { position: fixed; top: -10%; left: -10%; width: 120vw; height: 120vh; z-index: 0; background: url('bg.jpg') center/cover no-repeat; filter: brightness(0.7) contrast(1.0); }
+    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: url('bg.jpg') center/cover fixed; filter: brightness(0.7) contrast(1.0); }
     .content { position: relative; z-index: 2; }
 
     nav {
@@ -329,23 +329,6 @@
   </div>
 
   <script>
-    // ─── Parallax ───
-    (function() {
-      const bg = document.getElementById('bg-image');
-      if (!bg) return;
-      let tick = false;
-      window.addEventListener('scroll', () => {
-        if (!tick) {
-          window.requestAnimationFrame(() => {
-            const s = window.scrollY * 0.15;
-            bg.style.transform = 'translateY(' + s + 'px)';
-            tick = false;
-          });
-          tick = true;
-        }
-      }, { passive: true });
-    })();
-
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.stat-num[data-count]');
       const counterObs = new IntersectionObserver(entries => {
