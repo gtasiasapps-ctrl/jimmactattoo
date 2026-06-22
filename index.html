@@ -9,21 +9,27 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #fff;
-      color: #1a1a1a;
-      overflow-x: hidden;
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #0d0d0d; overflow-x: hidden; }
+
+    /* ─── Ink Canvas ─── */
+    #ink-canvas {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0; pointer-events: none;
+    }
+    /* ─── Subtle vignette overlay for text contrast ─── */
+    #vignette {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 1; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.4) 100%);
     }
 
-    #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none; }
-    .content { position: relative; z-index: 1; }
+    .content { position: relative; z-index: 2; }
 
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.9);
       backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(0,0,0,0.04);
     }
@@ -32,26 +38,26 @@
     nav .links a {
       color: rgba(0,0,0,0.5); text-decoration: none; font-size: 0.75rem;
       font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-      transition: color 0.3s;
+      transition: color 0.3s; position: relative;
     }
     nav .links a::after {
       content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
-      height: 1px; background: rgba(0,0,0,0.2);
+      height: 1px; background: rgba(0,0,0,0.15);
       transform: scaleX(0); transition: transform 0.3s;
     }
     nav .links a:hover { color: #000; }
     nav .links a:hover::after { transform: scaleX(1); }
     nav .links .cta {
       padding: 0.4rem 1.4rem;
-      border: 1px solid rgba(0,0,0,0.12);
+      border: 1px solid rgba(0,0,0,0.1);
       border-radius: 100px; color: #000; font-weight: 600;
     }
     nav .links .cta:hover { background: rgba(0,0,0,0.03); }
     .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: rgba(0,0,0,0.4); }
-    @media (max-width: 768px) {
+    @media (max-width:768px) {
       nav { padding: 0.8rem 1rem; }
       nav .links { display: none; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0;
-        background: rgba(255,255,255,0.95); backdrop-filter: blur(30px);
+        background: rgba(255,255,255,0.97); backdrop-filter: blur(30px);
         padding: 1rem; gap: 1rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
       nav .links.open { display: flex; }
       .mobile-toggle { display: block; }
@@ -65,166 +71,115 @@
       animation: fadeUp 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
     }
     .hero .tag {
-      display: inline-block; padding: 0.3rem 1rem;
-      background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 100px; font-size: 0.65rem; font-weight: 600;
-      letter-spacing: 0.2em; color: rgba(0,0,0,0.4); margin-bottom: 2rem;
+      display: inline-block; padding: 0.25rem 1rem;
+      background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 100px; font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.2em; color: rgba(0,0,0,0.4); margin-bottom: 1.5rem;
     }
-    .hero .main-logo {
-      max-width: 240px; height: auto; margin-bottom: 1.5rem;
-    }
+    .hero .main-logo { max-width: 200px; height: auto; margin-bottom: 1.2rem; }
     .hero h1 {
       font-family: 'Playfair Display', serif;
       font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 700;
       line-height: 1.0; letter-spacing: -0.03em;
-      color: #0d0d0d;
+      color: #090909;
     }
     .hero .sub {
-      font-size: clamp(0.9rem, 1.5vw, 1.05rem); color: rgba(0,0,0,0.4);
-      max-width: 480px; line-height: 1.7; font-weight: 300;
-      margin-top: 1.2rem;
+      font-size: clamp(0.85rem, 1.4vw, 1rem); color: rgba(0,0,0,0.4);
+      max-width: 460px; line-height: 1.7; font-weight: 300;
+      margin-top: 1rem;
     }
     .hero .rating-row {
-      display: flex; align-items: center; gap: 0.6rem;
-      margin-top: 1.5rem; flex-wrap: wrap; justify-content: center;
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-top: 1.2rem; flex-wrap: wrap; justify-content: center;
     }
-    .hero .stars { font-size: 1.1rem; letter-spacing: 2px; color: #c9a020; }
-    .hero .rating-text { font-size: 0.85rem; color: rgba(0,0,0,0.45); font-weight: 300; }
+    .hero .stars { font-size: 1rem; letter-spacing: 2px; color: #c9a020; }
+    .hero .rating-text { font-size: 0.8rem; color: rgba(0,0,0,0.45); font-weight: 300; }
     .hero .rating-text strong { color: rgba(0,0,0,0.7); font-weight: 500; }
-    .hero .buttons { margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .hero .buttons { margin-top: 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
     .hero .btn {
-      padding: 0.85rem 2.2rem; border-radius: 100px; font-weight: 600;
-      font-size: 0.85rem; text-decoration: none; transition: all 0.3s;
+      padding: 0.8rem 2rem; border-radius: 100px; font-weight: 600;
+      font-size: 0.8rem; text-decoration: none; transition: all 0.3s;
       letter-spacing: 0.05em;
     }
-    .hero .btn-primary {
-      border: 1px solid rgba(0,0,0,0.12);
-      background: rgba(0,0,0,0.03); color: #0d0d0d;
-    }
+    .hero .btn-primary { border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); color: #0d0d0d; }
     .hero .btn-primary:hover { background: rgba(0,0,0,0.06); transform: scale(1.03); }
-    .hero .btn-outline {
-      border: 1px solid rgba(0,0,0,0.08);
-      color: rgba(0,0,0,0.5); background: transparent;
-    }
-    .hero .btn-outline:hover { border-color: rgba(0,0,0,0.25); color: #000; }
+    .hero .btn-outline { border: 1px solid rgba(0,0,0,0.07); color: rgba(0,0,0,0.5); }
+    .hero .btn-outline:hover { border-color: rgba(0,0,0,0.2); color: #000; }
 
-    section { padding: 5rem 2rem; position: relative; }
+    section { padding: 4rem 2rem; position: relative; }
     .container { max-width: 1100px; margin: 0 auto; }
     .section-title {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(2rem, 4vw, 3rem); font-weight: 700;
+      font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700;
       margin-bottom: 0.6rem; text-align: center;
-      letter-spacing: -0.02em; color: #0d0d0d;
+      letter-spacing: -0.02em; color: #090909;
     }
     .section-sub {
       text-align: center; color: rgba(0,0,0,0.35);
-      max-width: 550px; margin: 0 auto 2.5rem;
-      font-size: 0.9rem; line-height: 1.7; font-weight: 300;
+      max-width: 500px; margin: 0 auto 2.5rem;
+      font-size: 0.85rem; line-height: 1.7; font-weight: 300;
     }
     .divider {
-      width: 1px; height: 40px; margin: 0 auto;
+      width: 1px; height: 30px; margin: 0 auto;
       background: linear-gradient(180deg, transparent, rgba(0,0,0,0.04), transparent);
     }
 
-    .stats-row {
-      display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
-      padding: 2rem 0;
-    }
+    .stats-row { display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap; padding: 2rem 0; }
     .stat { text-align: center; }
-    .stat-num {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.8rem; font-weight: 700; color: rgba(0,0,0,0.7);
-    }
-    .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.25); margin-top: 0.3rem; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: rgba(0,0,0,0.7); }
+    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(0,0,0,0.2); margin-top: 0.3rem; }
 
-    .about-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
-    }
-    @media (max-width: 768px) { .about-grid { grid-template-columns: 1fr; } }
-    .about-text { font-size: 0.9rem; color: rgba(0,0,0,0.5); line-height: 1.9; font-weight: 300; }
-    .about-text p + p { margin-top: 1rem; }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    @media (max-width:768px) { .about-grid { grid-template-columns: 1fr; } }
+    .about-text { font-size: 0.85rem; color: rgba(0,0,0,0.5); line-height: 1.9; font-weight: 300; }
+    .about-text p + p { margin-top: 0.8rem; }
     .about-text .highlight { color: rgba(0,0,0,0.75); font-weight: 400; }
     .about-logo { text-align: center; }
-    .about-logo img { max-width: 180px; height: auto; }
+    .about-logo img { max-width: 160px; height: auto; }
 
-    .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+    .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
     .service {
-      background: rgba(0,0,0,0.01);
-      border: 1px solid rgba(0,0,0,0.04);
-      border-radius: 20px; padding: 2rem 1.5rem;
-      text-align: center; transition: all 0.4s;
+      background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 18px; padding: 1.8rem 1.2rem; text-align: center; transition: all 0.3s;
     }
-    .service:hover { transform: translateY(-6px); border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.02); }
-    .service .icon { font-size: 2rem; margin-bottom: 0.8rem; }
-    .service h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: rgba(0,0,0,0.8); }
-    .service p { font-size: 0.8rem; color: rgba(0,0,0,0.4); line-height: 1.5; font-weight: 300; }
+    .service:hover { transform: translateY(-4px); border-color: rgba(0,0,0,0.07); }
+    .service .icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
+    .service h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; color: rgba(0,0,0,0.8); }
+    .service p { font-size: 0.78rem; color: rgba(0,0,0,0.4); line-height: 1.5; font-weight: 300; }
 
-    .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; }
-    .review {
-      background: rgba(0,0,0,0.01);
-      border: 1px solid rgba(0,0,0,0.04);
-      border-radius: 16px; padding: 1.5rem;
-    }
-    .review:hover { border-color: rgba(0,0,0,0.08); }
-    .review .review-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
-    .review .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(0,0,0,0.02);
-      border: 1px solid rgba(0,0,0,0.06);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.8rem; color: rgba(0,0,0,0.25);
-    }
-    .review .name { font-size: 0.8rem; font-weight: 500; color: rgba(0,0,0,0.55); }
-    .review .rv-stars { font-size: 0.8rem; color: #c9a020; letter-spacing: 1px; }
-    .review .text { font-size: 0.8rem; color: rgba(0,0,0,0.4); line-height: 1.6; font-weight: 300; }
+    .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .review { background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; padding: 1.3rem; }
+    .review:hover { border-color: rgba(0,0,0,0.07); }
+    .review .review-header { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem; }
+    .review .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: rgba(0,0,0,0.25); }
+    .review .name { font-size: 0.78rem; font-weight: 500; color: rgba(0,0,0,0.55); }
+    .review .rv-stars { font-size: 0.78rem; color: #c9a020; letter-spacing: 1px; }
+    .review .text { font-size: 0.78rem; color: rgba(0,0,0,0.4); line-height: 1.6; font-weight: 300; }
 
-    .map-container {
-      border-radius: 20px; overflow: hidden;
-      border: 1px solid rgba(0,0,0,0.04);
-      height: 300px;
-    }
+    .map-container { border-radius: 18px; overflow: hidden; border: 1px solid rgba(0,0,0,0.04); height: 250px; }
     .map-container iframe { width: 100%; height: 100%; border: 0; filter: grayscale(0.3) brightness(1.05); }
 
-    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 700px; margin: 0 auto; }
-    @media (max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } }
-    .contact-item {
-      background: rgba(0,0,0,0.01);
-      border: 1px solid rgba(0,0,0,0.04);
-      border-radius: 16px; padding: 1.5rem; text-align: center;
-    }
-    .contact-item:hover { border-color: rgba(0,0,0,0.08); }
-    .contact-item .icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
-    .contact-item h4 { font-size: 0.7rem; font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(0,0,0,0.45); }
-    .contact-item p, .contact-item a {
-      font-size: 0.85rem; color: rgba(0,0,0,0.45);
-      text-decoration: none; transition: color 0.3s; font-weight: 300;
-    }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 650px; margin: 0 auto; }
+    @media (max-width:600px) { .contact-grid { grid-template-columns: 1fr; } }
+    .contact-item { background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; padding: 1.3rem; text-align: center; }
+    .contact-item:hover { border-color: rgba(0,0,0,0.07); }
+    .contact-item .icon { font-size: 1.2rem; margin-bottom: 0.3rem; }
+    .contact-item h4 { font-size: 0.65rem; font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(0,0,0,0.45); }
+    .contact-item p, .contact-item a { font-size: 0.8rem; color: rgba(0,0,0,0.45); text-decoration: none; font-weight: 300; }
     .contact-item a:hover { color: #000; }
 
-    .social-links {
-      display: flex; justify-content: center; gap: 1.2rem; margin-top: 2rem;
-    }
-    .social-links a {
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.06);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; text-decoration: none; color: rgba(0,0,0,0.25);
-      transition: all 0.3s;
-    }
+    .social-links { display: flex; justify-content: center; gap: 1rem; margin-top: 1.8rem; }
+    .social-links a { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; font-size: 1rem; text-decoration: none; color: rgba(0,0,0,0.25); transition: all 0.3s; }
     .social-links a:hover { border-color: rgba(0,0,0,0.15); color: #000; transform: translateY(-3px); }
 
-    footer {
-      text-align: center; padding: 2rem;
-      border-top: 1px solid rgba(0,0,0,0.03);
-      font-size: 0.75rem; color: rgba(0,0,0,0.15); font-weight: 300;
-    }
+    footer { text-align: center; padding: 1.5rem; border-top: 1px solid rgba(0,0,0,0.03); font-size: 0.7rem; color: rgba(0,0,0,0.12); font-weight: 300; }
 
-    .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16,1,0.3,1); }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .reveal-scale { opacity: 0; transform: scale(0.85); transition: all 0.9s cubic-bezier(0.16,1,0.3,1); }
     .reveal-scale.visible { opacity: 1; transform: scale(1); }
 
-    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: #fff; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 4px; }
 
@@ -233,7 +188,8 @@
 </head>
 <body>
 
-  <div id="bg-canvas"></div>
+  <canvas id="ink-canvas"></canvas>
+  <div id="vignette"></div>
 
   <nav>
     <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo" class="logo-img" />
@@ -248,10 +204,9 @@
   </nav>
 
   <div class="content">
-
     <section class="hero">
       <div class="tag">Tattoo & Piercing Studio · Λάρισα</div>
-      <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo Studio" class="main-logo" />
+      <img src="jimmac_tattoo_transparent.png" alt="JimmaC" class="main-logo" />
       <h1>Art on Skin</h1>
       <p class="sub">Tattoo, piercing & body modification.<br>Every line tells a story.</p>
       <div class="rating-row">
@@ -264,7 +219,7 @@
       </div>
     </section>
 
-    <section style="padding: 1rem 2rem;">
+    <section style="padding:1rem 2rem;">
       <div class="stats-row container">
         <div class="stat reveal"><div class="stat-num" data-count="5.0">0</div><div class="stat-label">★ Αξιολόγηση</div></div>
         <div class="stat reveal"><div class="stat-num" data-count="340">0</div><div class="stat-label">Κριτικές</div></div>
@@ -280,13 +235,11 @@
       <p class="section-sub reveal">Ένας χώρος όπου η τέχνη συναντά το μεράκι.</p>
       <div class="about-grid">
         <div class="about-text reveal">
-          <p>Το <span class="highlight">JimmaC Tattoo Studio</span> καλύπτει όλα τα στυλ και τις τεχνοτροπίες tattoo, καθώς και όλα τα σημεία για piercing (εμφανή ή μη) και body mods.</p>
+          <p>Το <span class="highlight">JimmaC Tattoo Studio</span> καλύπτει όλα τα στυλ και τεχνοτροπίες tattoo, piercing και body mods.</p>
           <p>Σε ένα <span class="highlight">ζεστό και φιλικό χώρο</span>, με καθαρό περιβάλλον, μπορείς να νιώσεις σίγουρος για τη διαδικασία και το τελικό αποτέλεσμα.</p>
-          <p>Πιστεύουμε ότι τα καλύτερα tattoo γίνονται μέσα από τη καλύτερη δυνατή <span class="highlight">συνεννόηση πελάτη – artist</span>.</p>
+          <p>Πιστεύουμε ότι τα καλύτερα tattoo γίνονται μέσα από τη <span class="highlight">συνεννόηση πελάτη – artist</span>.</p>
         </div>
-        <div class="about-logo reveal-scale">
-          <img src="jimmac_tattoo_transparent.png" alt="JimmaC Tattoo" />
-        </div>
+        <div class="about-logo reveal-scale"><img src="jimmac_tattoo_transparent.png" alt="JimmaC" /></div>
       </div>
     </section>
 
@@ -296,22 +249,10 @@
       <h2 class="section-title reveal-scale">Υπηρεσίες</h2>
       <p class="section-sub reveal">Από το πιο απλό σχέδιο μέχρι ολόσωμο tattoo.</p>
       <div class="services">
-        <div class="service reveal">
-          <div class="icon">🖋️</div><h3>Tattoo</h3>
-          <p>Όλα τα στυλ και τεχνοτροπίες. Από minimal έως ρεαλισμός, old school, geometric, watercolor & more.</p>
-        </div>
-        <div class="service reveal">
-          <div class="icon">⭕</div><h3>Piercing</h3>
-          <p>Δεν υπάρχει τρύπα που δεν κάνουμε. Όλα τα σημεία, εμφανή ή μη, με τις τελευταίες τεχνικές.</p>
-        </div>
-        <div class="service reveal">
-          <div class="icon">🔄</div><h3>Διόρθωση Tattoo</h3>
-          <p>Cover-ups, διορθώσεις, βελτιώσεις υπαρχόντων τατουάζ.</p>
-        </div>
-        <div class="service reveal">
-          <div class="icon">🧪</div><h3>Υποαλλεργικά Χρώματα</h3>
-          <p>Ποιότητα και ασφάλεια πρώτα. Χρώματα για όλες τις επιδερμίδες.</p>
-        </div>
+        <div class="service reveal"><div class="icon">🖋️</div><h3>Tattoo</h3><p>Όλα τα στυλ: minimal, ρεαλισμός, old school, geometric, watercolor & more.</p></div>
+        <div class="service reveal"><div class="icon">⭕</div><h3>Piercing</h3><p>Δεν υπάρχει τρύπα που δεν κάνουμε. Όλα τα σημεία με σύγχρονες τεχνικές.</p></div>
+        <div class="service reveal"><div class="icon">🔄</div><h3>Διόρθωση Tattoo</h3><p>Cover-ups & διορθώσεις. Δεύτερη ευκαιρία στο δέρμα σου.</p></div>
+        <div class="service reveal"><div class="icon">🧪</div><h3>Υποαλλεργικά</h3><p>Χρώματα για ευαίσθητες επιδερμίδες. Ασφάλεια πρώτα.</p></div>
       </div>
     </section>
 
@@ -321,18 +262,9 @@
       <h2 class="section-title reveal-scale">Κριτικές</h2>
       <p class="section-sub reveal">5.0 ★ από 340 αξιολογήσεις στο Google</p>
       <div class="reviews-grid">
-        <div class="review reveal">
-          <div class="review-header"><div class="avatar">⭐</div><div><div class="name">Αποστόλης Κ.</div><div class="rv-stars">★★★★★</div></div></div>
-          <div class="text">Εξαιρετικό studio! Ο επαγγελματισμός και η φιλική ατμόσφαιρα σε κάνουν να νιώθεις άνετα από την πρώτη στιγμή.</div>
-        </div>
-        <div class="review reveal">
-          <div class="review-header"><div class="avatar">⭐</div><div><div class="name">Μαρία Π.</div><div class="rv-stars">★★★★★</div></div></div>
-          <div class="text">Το καλύτερο piercing που έχω κάνει! Γρήγορα, καθαρά, με επαγγελματισμό. Σίγουρα θα ξαναπάω.</div>
-        </div>
-        <div class="review reveal">
-          <div class="review-header"><div class="avatar">⭐</div><div><div class="name">Γιώργος Τ.</div><div class="rv-stars">★★★★★</div></div></div>
-          <div class="text">Ρεαλισμός σε άλλο επίπεδο. Μου αποτύπωσαν την ιδέα μου καλύτερα από όσο φανταζόμουν.</div>
-        </div>
+        <div class="review reveal"><div class="review-header"><div class="avatar">⭐</div><div><div class="name">Αποστόλης Κ.</div><div class="rv-stars">★★★★★</div></div></div><div class="text">Εξαιρετικό studio! Επαγγελματισμός και φιλική ατμόσφαιρα. Το αποτέλεσμα ήταν ακριβώς αυτό που ήθελα.</div></div>
+        <div class="review reveal"><div class="review-header"><div class="avatar">⭐</div><div><div class="name">Μαρία Π.</div><div class="rv-stars">★★★★★</div></div></div><div class="text">Το καλύτερο piercing που έχω κάνει! Γρήγορα και καθαρά.</div></div>
+        <div class="review reveal"><div class="review-header"><div class="avatar">⭐</div><div><div class="name">Γιώργος Τ.</div><div class="rv-stars">★★★★★</div></div></div><div class="text">Ρεαλισμός σε άλλο επίπεδο. Μου αποτύπωσαν την ιδέα μου καλύτερα από όσο φανταζόμουν.</div></div>
       </div>
     </section>
 
@@ -340,7 +272,7 @@
 
     <section id="location" class="container">
       <h2 class="section-title reveal-scale">Τοποθεσία</h2>
-      <p class="section-sub reveal">Ολύμπου 49, Λάρισα — στο κέντρο της πόλης</p>
+      <p class="section-sub reveal">Ολύμπου 49, Λάρισα — στο κέντρο</p>
       <div class="map-container reveal">
         <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3100!2d22.4208!3d39.6375!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1358897e0f48718d%3A0x9f25b37896e47bab!2sJimmaC%20Tattoo%20Studio!5e0!3m2!1sel!2sgr!4v1" allowfullscreen="" loading="lazy"></iframe>
       </div>
@@ -365,214 +297,261 @@
     </section>
 
     <footer><p>© 2026 JimmaC Tattoo Studio · Λάρισα</p></footer>
-
   </div>
 
-  <!-- ─── Three.js — Realistic Ink Flow ─── -->
-  <script type="importmap">
-  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-  </script>
+  <script>
+    // ─── Realistic Ink Flow — HTML5 Canvas ───
+    const canvas = document.getElementById('ink-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-  <script type="module">
-    import * as THREE from 'three';
+    // ─── Ink Streams ───
+    // Each stream = a flowing trail of ink that drips downward
+    const STREAMS = 25;
+    const streams = [];
 
-    const canvas = document.getElementById('bg-canvas');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    canvas.appendChild(renderer.domElement);
-
-    // ─── Realistic ink drop texture (soft falloff, darker core) ───
-    const dropTex = (() => {
-      const c = document.createElement('canvas'); c.width = 64; c.height = 128;
-      const ctx = c.getContext('2d');
-      // Elongated drop shape: sharper at top, rounder at bottom (teardrop)
-      const g = ctx.createRadialGradient(32, 30, 0, 32, 30, 35);
-      g.addColorStop(0, 'rgba(0,0,0,1)');
-      g.addColorStop(0.2, 'rgba(0,0,0,0.9)');
-      g.addColorStop(0.4, 'rgba(0,0,0,0.5)');
-      g.addColorStop(0.7, 'rgba(0,0,0,0.15)');
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, 64, 128);
-      // Streak/tail below
-      ctx.fillStyle = 'rgba(0,0,0,0.1)';
-      ctx.fillRect(28, 50, 8, 60);
-      ctx.fillStyle = 'rgba(0,0,0,0.05)';
-      ctx.fillRect(30, 60, 4, 50);
-      return new THREE.CanvasTexture(c);
-    })();
-
-    // ─── Ink Droplets (falling down with gravity) ───
-    const DROPS = 4000;
-    const dpos = new Float32Array(DROPS * 3);
-    const dvel = new Float32Array(DROPS);
-    const dsize = new Float32Array(DROPS);
-    const dphase = new Float32Array(DROPS);
-
-    // Spawn area: wide at top, particles fall down
-    for (let i = 0; i < DROPS; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random()) * 7;
-      dpos[i*3] = Math.cos(a) * r;
-      dpos[i*3+1] = 5 - Math.random() * 10; // spread from top to bottom
-      dpos[i*3+2] = Math.sin(a) * r * 0.3;
-      dvel[i] = 0.2 + Math.random() * 0.6; // fall speed
-      dsize[i] = 0.1 + Math.random() * 0.3;
-      dphase[i] = Math.random() * Math.PI * 2;
+    for (let i = 0; i < STREAMS; i++) {
+      streams.push({
+        x: Math.random() * W,
+        speed: 0.4 + Math.random() * 1.2,
+        thickness: 1.5 + Math.random() * 5,
+        opacity: 0.15 + Math.random() * 0.35,
+        // Trail history: array of {x, y, age}
+        trail: [],
+        maxTrail: 80 + Math.floor(Math.random() * 120),
+        // Phase wiggle
+        phase: Math.random() * Math.PI * 2,
+        wiggle: 0.2 + Math.random() * 0.8,
+        // Branching
+        branchTimer: 100 + Math.random() * 300,
+        branchNext: 0,
+        y: -20 - Math.random() * 100,
+        // Droplet spawning
+        dropTimer: 0,
+      });
     }
 
-    const dropGeo = new THREE.BufferGeometry();
-    dropGeo.setAttribute('position', new THREE.BufferAttribute(dpos, 3));
-    const dropMat = new THREE.PointsMaterial({
-      map: dropTex, color: 0x000000, transparent: true, opacity: 0.85,
-      size: 0.5, blending: THREE.NormalBlending, depthWrite: false,
-      sizeAttenuation: true,
-    });
-    const drops = new THREE.Points(dropGeo, dropMat);
-    scene.add(drops);
+    // ─── Independent droplets (fall from stream tips) ───
+    const droplets = [];
 
-    // ─── Tiny splatter particles (fast tiny dots) ───
-    const SPLATTER = 1200;
-    const sp = new Float32Array(SPLATTER * 3);
-    const sv = new Float32Array(SPLATTER);
-    const sph = new Float32Array(SPLATTER);
-    for (let i = 0; i < SPLATTER; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random()) * 5;
-      sp[i*3] = Math.cos(a) * r;
-      sp[i*3+1] = 4 - Math.random() * 8;
-      sp[i*3+2] = Math.sin(a) * r * 0.2;
-      sv[i] = 0.4 + Math.random() * 0.8;
-      sph[i] = Math.random() * Math.PI * 2;
-    }
-    const splatGeo = new THREE.BufferGeometry();
-    splatGeo.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-    const splatMat = new THREE.PointsMaterial({
-      map: dropTex, color: 0x000000, transparent: true, opacity: 0.4,
-      size: 0.12, blending: THREE.NormalBlending, depthWrite: false,
-      sizeAttenuation: true,
-    });
-    const splats = new THREE.Points(splatGeo, splatMat);
-    scene.add(splats);
-
-    // ─── Needle (horizontal groups forming a line) ───
-    const NEEDLE = 300;
-    const np = new Float32Array(NEEDLE * 3);
-    const nb = new Float32Array(NEEDLE * 3);
-    for (let i = 0; i < NEEDLE; i++) {
-      const t = (i / NEEDLE) * Math.PI * 2;
-      const y = Math.sin(t) * 2.0;
-      const x = Math.cos(t) * 0.04;
-      const z = Math.sin(t*2) * 0.02;
-      np[i*3] = x; np[i*3+1] = y + 0.5; np[i*3+2] = z;
-      nb[i*3] = x; nb[i*3+1] = y + 0.5; nb[i*3+2] = z;
-    }
-    const needleGeo = new THREE.BufferGeometry();
-    needleGeo.setAttribute('position', new THREE.BufferAttribute(np, 3));
-    const needleMat = new THREE.PointsMaterial({
-      map: dropTex, color: 0x000000, transparent: true, opacity: 0.5,
-      size: 0.05, blending: THREE.NormalBlending, depthWrite: false,
-      sizeAttenuation: true,
-    });
-    const needlePts = new THREE.Points(needleGeo, needleMat);
-    scene.add(needlePts);
-
-    camera.position.set(0, 0, 8);
-
-    let mx = 0, my = 0, tx = 0, ty = 0;
-    document.addEventListener('mousemove', e => {
-      tx = (e.clientX/window.innerWidth)*2-1;
-      ty = -(e.clientY/window.innerHeight)*2+1;
-    });
+    // ─── Mouse effect ───
+    let mouseX = W/2, mouseY = H/2;
+    document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
     let scrollY = 0;
     window.addEventListener('scroll', () => { scrollY = window.scrollY; });
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 
-    const clock = new THREE.Clock();
-    function animate() {
-      requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+    // ─── Draw frame ───
+    function drawInk() {
+      ctx.clearRect(0, 0, W, H);
+
       const progress = Math.min(1, scrollY / 3500);
 
-      mx += (tx - mx) * 0.12;
-      my += (ty - my) * 0.12;
+      // ─── Update & draw streams ───
+      for (const s of streams) {
+        // Move stream head downward
+        const gravity = 0.6 + progress * 0.3;
+        const baseSpeed = s.speed * gravity;
+        s.y += baseSpeed;
 
-      // ─── Ink drops falling with gravity ───
-      const p = drops.geometry.attributes.position.array;
-      for (let i = 0; i < DROPS; i++) {
-        const idx = i*3;
-        // Gravity: accelerate downward
-        dvel[i] += 0.003; // gravity
-        if (dvel[i] > 1.5) dvel[i] = 1.5;
-        p[idx+1] -= dvel[i] * 0.02;
-        // Horizontal wobble (wind/air resistance)
-        p[idx] += Math.sin(t * 0.15 + dphase[i]) * 0.003;
-        p[idx+2] += Math.cos(t * 0.12 + dphase[i]) * 0.002;
-        // Mouse influence on wind
-        p[idx] += mx * 0.002;
+        // Horizontal wobble
+        const wobbleX = Math.sin(Date.now() * 0.001 * s.wiggle + s.phase) * 0.3;
+        s.x += wobbleX;
 
-        // Reset when reaching bottom
-        if (p[idx+1] < -5.5) {
-          const a = Math.random() * Math.PI * 2;
-          const r = Math.sqrt(Math.random()) * 6;
-          p[idx] = Math.cos(a) * r;
-          p[idx+1] = 5 + Math.random() * 1.5;
-          p[idx+2] = Math.sin(a) * r * 0.3;
-          dvel[i] = 0.2 + Math.random() * 0.3;
+        // Mouse attraction/repulsion
+        const dx = mouseX - s.x;
+        const dy = mouseY - s.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 400) {
+          s.x -= (dx / dist) * 0.15 * (1 - dist/400);
+          s.y += (dy / dist) * 0.08;
+        }
+
+        // Branch from main stream randomly
+        s.branchNext++;
+        if (s.branchNext >= s.branchTimer) {
+          s.branchNext = 0;
+          s.branchTimer = 80 + Math.random() * 200;
+          // Create a branch (new stream from current position)
+          if (streams.length < 50) {
+            const branch = {
+              x: s.x + (Math.random() - 0.5) * 10,
+              y: s.y,
+              speed: s.speed * (0.3 + Math.random() * 0.4),
+              thickness: s.thickness * (0.2 + Math.random() * 0.4),
+              opacity: s.opacity * (0.3 + Math.random() * 0.5),
+              trail: [],
+              maxTrail: 20 + Math.floor(Math.random() * 40),
+              phase: Math.random() * Math.PI * 2,
+              wiggle: 0.3 + Math.random() * 1.0,
+              branchTimer: 9999,
+              branchNext: 0,
+              y: s.y,
+              dropTimer: 0,
+            };
+            // Copy last few positions from parent for smooth branch
+            for (let j = Math.max(0, s.trail.length - 5); j < s.trail.length; j++) {
+              branch.trail.push({...s.trail[j]});
+            }
+            streams.push(branch);
+          }
+        }
+
+        // Add current position to trail
+        s.trail.push({ x: s.x, y: s.y, age: 0 });
+
+        // Limit trail length
+        if (s.trail.length > s.maxTrail) {
+          s.trail.shift();
+        }
+
+        // Age all trail points
+        for (const t of s.trail) t.age++;
+
+        // ─── Spawn droplets from stream head ───
+        if (Math.random() < 0.08) {
+          droplets.push({
+            x: s.x + (Math.random() - 0.5) * s.thickness,
+            y: s.y,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: 0.5 + Math.random() * 1.0,
+            radius: 0.8 + Math.random() * 2.5,
+            opacity: s.opacity * (0.4 + Math.random() * 0.6),
+            life: 0,
+          });
+        }
+
+        // ─── Draw the trail ───
+        if (s.trail.length < 2) continue;
+
+        // Main stream — thick continuous line
+        ctx.beginPath();
+        ctx.moveTo(s.trail[0].x, s.trail[0].y);
+        for (let j = 1; j < s.trail.length; j++) {
+          ctx.lineTo(s.trail[j].x, s.trail[j].y);
+        }
+
+        // Thickness varies along trail (thin at tip, thicker at top)
+        const maxThick = s.thickness * (0.8 + Math.random() * 0.4);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Draw the trail with gradient opacity
+        // We draw it in segments with varying opacity/thickness for natural look
+        for (let j = 1; j < s.trail.length; j++) {
+          const t0 = s.trail[j-1];
+          const t1 = s.trail[j];
+          const ageRatio = j / s.trail.length;
+          const thickness = maxThick * (0.15 + ageRatio * 0.85);
+          const alpha = s.opacity * (0.2 + ageRatio * 0.8) * (1 - progress * 0.3);
+
+          ctx.beginPath();
+          ctx.moveTo(t0.x, t0.y);
+          ctx.lineTo(t1.x, t1.y);
+          ctx.strokeStyle = `rgba(0,0,0,${alpha})`;
+          ctx.lineWidth = thickness;
+          ctx.stroke();
+        }
+
+        // Draw a small splatter at stream head
+        if (Math.random() < 0.05) {
+          const splatR = 1 + Math.random() * 3;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, splatR, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0,0,0,${s.opacity * 0.3})`;
+          ctx.fill();
         }
       }
-      drops.geometry.attributes.position.needsUpdate = true;
 
-      // ─── Splatter (faster tiny drops) ───
-      const s = splats.geometry.attributes.position.array;
-      for (let i = 0; i < SPLATTER; i++) {
-        const idx = i*3;
-        sv[i] += 0.002;
-        if (sv[i] > 2.0) sv[i] = 2.0;
-        s[idx+1] -= sv[i] * 0.015;
-        s[idx] += Math.sin(t * 0.2 + sph[i]) * 0.005;
-        s[idx+2] += Math.cos(t * 0.15 + sph[i]) * 0.003;
-        if (s[idx+1] < -5.5) {
-          const a = Math.random() * Math.PI * 2;
-          const r = Math.sqrt(Math.random()) * 4;
-          s[idx] = Math.cos(a) * r;
-          s[idx+1] = 4 + Math.random() * 2;
-          s[idx+2] = Math.sin(a) * r * 0.2;
-          sv[i] = 0.4 + Math.random() * 0.5;
+      // ─── Clean up very old streams ───
+      for (let i = streams.length - 1; i >= 0; i--) {
+        if (streams[i].y > H + 200) {
+          // Reset to top
+          streams[i].y = -20 - Math.random() * 150;
+          streams[i].x = Math.random() * W;
+          streams[i].trail = [];
+          streams[i].thickness = 1.5 + Math.random() * 4;
+          streams[i].speed = 0.4 + Math.random() * 1.0;
+          if (streams.length > 35) {
+            streams.splice(i, 1);
+          }
         }
       }
-      splats.geometry.attributes.position.needsUpdate = true;
 
-      // ─── Needle responds to mouse ───
-      const n = needlePts.geometry.attributes.position.array;
-      for (let i = 0; i < NEEDLE; i++) {
-        const idx = i*3;
-        n[idx] = nb[idx] + mx * 0.25;
-        n[idx+1] = nb[idx+1] + my * 0.2 + Math.sin(t * 0.4 + i*0.1) * 0.02;
+      // ─── Spawn new streams occasionally ───
+      if (streams.length < 25 && Math.random() < 0.03) {
+        streams.push({
+          x: Math.random() * W,
+          y: -20,
+          speed: 0.4 + Math.random() * 1.0,
+          thickness: 1.5 + Math.random() * 4,
+          opacity: 0.15 + Math.random() * 0.3,
+          trail: [],
+          maxTrail: 60 + Math.floor(Math.random() * 100),
+          phase: Math.random() * Math.PI * 2,
+          wiggle: 0.2 + Math.random() * 0.8,
+          branchTimer: 100 + Math.random() * 300,
+          branchNext: 0,
+          dropTimer: 0,
+        });
       }
-      needlePts.geometry.attributes.position.needsUpdate = true;
 
-      // ─── Camera ───
-      camera.position.x += (mx * 2 - camera.position.x) * 0.03;
-      camera.position.y += (my * 1 - camera.position.y) * 0.03 - progress * 0.5;
-      camera.position.z = 8 - progress * 1.5;
-      camera.lookAt(0, 0, 0);
+      // ─── Update & draw droplets ───
+      for (let i = droplets.length - 1; i >= 0; i--) {
+        const d = droplets[i];
+        d.life++;
+        // Gravity
+        d.vy += 0.02;
+        d.y += d.vy;
+        d.x += d.vx + Math.sin(d.life * 0.05) * 0.1;
 
-      renderer.render(scene, camera);
+        // Fade out
+        const fade = Math.max(0, 1 - d.life / 120);
+
+        // Draw droplet
+        // Stretched drop shape: elongated along velocity direction
+        const stretch = 1 + d.vy * 0.5;
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.radius * (1 + d.vy * 0.1), d.radius * stretch, 0, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${d.opacity * fade})`;
+        ctx.fill();
+
+        // Small secondary drop (splatter)
+        if (Math.random() < 0.01 && d.life > 10) {
+          ctx.beginPath();
+          ctx.arc(d.x + (Math.random()-0.5)*6, d.y + Math.random()*4, d.radius * 0.3, 0, Math.PI*2);
+          ctx.fillStyle = `rgba(0,0,0,${d.opacity * fade * 0.3})`;
+          ctx.fill();
+        }
+
+        if (d.life > 120 || d.y > H + 20) {
+          droplets.splice(i, 1);
+        }
+      }
+
+      // ─── Ambient ink smudges (very subtle) ───
+      if (Math.random() < 0.02) {
+        const sx = Math.random() * W;
+        const sy = Math.random() * H;
+        const sr = 2 + Math.random() * 8;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,0,0,${0.01 + Math.random() * 0.02})`;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(drawInk);
     }
-    animate();
-  </script>
 
-  <script>
+    drawInk();
+
+    // ─── Counter + Reveal ───
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.stat-num[data-count]');
       const counterObs = new IntersectionObserver(entries => {
