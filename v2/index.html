@@ -9,22 +9,23 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Space Grotesk', sans-serif; background: #fff; color: #f0ede8; overflow-x: hidden; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #0d0d0d; color: #f0ede8; overflow-x: hidden; }
 
+    #bg-image { position: fixed; top: 0; left: 0; width: 100vw; height: 130vh; z-index: 0; background: url('bg.jpg') center/cover no-repeat; filter: brightness(0.5) contrast(1.1); }
     .content { position: relative; z-index: 2; }
 
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 1rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.5);
       backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     nav .logo-img { height: 32px; width: auto; filter: brightness(1.2); }
     nav .links { display: flex; gap: 2rem; align-items: center; }
     nav .links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; position: relative; }
-    nav .links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.15); transform: scaleX(0); transition: transform 0.3s; }
+    nav .links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.15); transform: scaleX(0); transition: transform 0.3s; }
     nav .links a:hover { color: #fff; }
     nav .links a:hover::after { transform: scaleX(1); }
     nav .links .cta { padding: 0.4rem 1.4rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; color: #fff; font-weight: 600; }
