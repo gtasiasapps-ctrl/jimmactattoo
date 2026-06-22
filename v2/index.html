@@ -18,9 +18,8 @@
       padding: 1rem 2rem;
       display: flex; justify-content: space-between; align-items: center;
       background: rgba(0,0,0,0.5);
-      
-      -webkit-
-      
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
     nav .logo-img { height: 32px; width: auto; filter: brightness(1.2); }
@@ -65,12 +64,12 @@
       overflow: hidden;
       cursor: pointer;
       background: rgba(255,255,255,0.08);
-      box-shadow: 0 8px 32px rgba(255,255,255,0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
       text-decoration: none;
       display: block;
     }
-    .artist-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(255,255,255,0.12); }
+    .artist-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
     .artist-card img {
       width: 100%; height: 100%;
       object-fit: cover;
@@ -108,7 +107,7 @@
       border-radius: 24px;
       overflow: hidden;
       background: rgba(255,255,255,0.08);
-      box-shadow: 0 8px 32px rgba(255,255,255,0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
     .artist-profile .portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .artist-profile .info { }
@@ -175,7 +174,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       border-radius: 20px; padding: 1.8rem 1.2rem; text-align: center; transition: all 0.3s;
     }
-    .service:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(255,255,255,0.08); }
+    .service:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
     .service .icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
     .service h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; color: rgba(255,255,255,0.8); }
     .service p { font-size: 0.78rem; color: rgba(255,255,255,0.4); line-height: 1.5; font-weight: 300; }
@@ -188,7 +187,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       border-radius: 18px; padding: 1.3rem;
     }
-    .review:hover { border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(255,255,255,0.08); }
+    .review:hover { border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
     .review .review-header { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.7rem; }
     .review .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: rgba(255,255,255,0.25); }
     .review .name { font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.55); }
@@ -206,7 +205,7 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       border-radius: 18px; padding: 1.3rem; text-align: center;
     }
-    .contact-item:hover { border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(255,255,255,0.08); }
+    .contact-item:hover { border-color: rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
     .contact-item .icon { font-size: 1.2rem; margin-bottom: 0.3rem; }
     .contact-item h4 { font-size: 0.65rem; font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); }
     .contact-item p, .contact-item a { font-size: 0.8rem; color: rgba(255,255,255,0.45); text-decoration: none; font-weight: 300; }
