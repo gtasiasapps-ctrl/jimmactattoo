@@ -23,7 +23,7 @@
       backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    nav .logo-img { height: 32px; width: auto; filter: brightness(1.2); }
+    nav .logo-img { height: 32px; width: auto; filter: brightness(0) saturate(100%) hue-rotate(110deg) brightness(200%); }
     nav .links { display: flex; gap: 2rem; align-items: center; }
     nav .links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.3s; position: relative; }
     nav .links a::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.15); transform: scaleX(0); transition: transform 0.3s; }
@@ -41,7 +41,7 @@
 
     .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 6rem 2rem 4rem; opacity: 0; transform: translateY(30px); animation: fadeUp 1.2s cubic-bezier(0.16,1,0.3,1) forwards; }
     .hero .tag { display: inline-block; padding: 0.25rem 1rem; background: transparent; border: 1px solid rgba(255,255,255,0.05); border-radius: 100px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
-    .hero .main-logo { max-width: 200px; height: auto; margin-bottom: 1.2rem; }
+    .hero .main-logo { max-width: 200px; height: auto; margin-bottom: 1.2rem; filter: brightness(0) saturate(100%) hue-rotate(110deg) brightness(200%); }
     .hero h1 { font-family: 'Sora', sans-serif; font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; color: #f0ede8; }
     .hero .sub { font-size: clamp(0.85rem, 1.4vw, 1rem); color: rgba(255,255,255,0.4); max-width: 460px; line-height: 1.7; font-weight: 300; margin-top: 1rem; }
     .hero .rating-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.2rem; flex-wrap: wrap; justify-content: center; }
@@ -165,7 +165,7 @@
     .about-text p + p { margin-top: 0.8rem; }
     .about-text .highlight { color: rgba(255,255,255,0.75); font-weight: 400; }
     .about-logo { text-align: center; }
-    .about-logo img { max-width: 160px; height: auto; }
+    .about-logo img { max-width: 160px; height: auto; filter: brightness(0) saturate(100%) hue-rotate(110deg) brightness(200%); }
     .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
     .service {
       background: rgba(255,255,255,0.08);
