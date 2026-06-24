@@ -6,10 +6,12 @@
   <title>Jimmac — JimmaC Tattoo Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="ink.mp4" as="video" type="video/mp4" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Space Grotesk', sans-serif; background: #fff; color: #0d0d0d; }
 
+    #bg-video-placeholder { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: linear-gradient(135deg, #1a1a1a 0%, #2a2520 40%, #1a1510 100%); }
     #bg-video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; object-fit: cover; filter: contrast(2.0) brightness(0.9) saturate(0.8); }
     #vignette { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.97) 100%); }
     .content { position: relative; z-index: 2; }
@@ -75,7 +77,8 @@
   </style>
 </head>
 <body>
-  <video id="bg-video" src="../ink.mp4" muted playsinline preload="auto" style="will-change: transform;"></video>
+  <div id="bg-video-placeholder"></div>
+  <video id="bg-video" src="ink.mp4" poster="poster.jpg" muted playsinline preload="auto" style="will-change: transform;"></video>
   <div id="vignette"></div>
 
   <nav>
@@ -121,6 +124,14 @@
   <footer><p>© 2026 JimmaC Tattoo Studio · Λάρισα</p></footer>
 
   <script>
+    // Force video load early
+    (function() {
+      const video = document.getElementById('bg-video');
+      if (!video) return;
+      // Kick off load immediately (don't wait for 'load' event)
+      video.load();
+    })();
+
     // Scroll-driven video
     (function() {
       const video = document.getElementById('bg-video');
